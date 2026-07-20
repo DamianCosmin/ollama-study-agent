@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Search,
-  Bell,
   Plus,
   Brain,
   Sigma,
@@ -9,6 +8,7 @@ import {
   Sparkles,
   Layers as LayersIcon,
 } from "lucide-react";
+import { PageHeader } from "../components/PageHeader.tsx";
 
 type Deck = {
   id: string;
@@ -86,56 +86,30 @@ export default function FlashcardsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:w-96">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="search"
-            placeholder="Search decks..."
-            className="w-full rounded-full bg-white py-2 pl-10 pr-4 text-sm text-neutral-900 outline outline-1 outline-offset-[-1px] outline-gray-500 placeholder:text-neutral-300/50 focus:outline-cyan-500"
-          />
-        </div>
-        <div className="flex items-center justify-end gap-4">
-          <button
-            type="button"
-            className="flex size-10 items-center justify-center rounded-full bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]"
-            aria-label="Search"
-          >
-            <Search className="size-4" />
-          </button>
-          <button
-            type="button"
-            className="flex size-10 items-center justify-center rounded-full bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]"
-            aria-label="Notifications"
-          >
-            <Bell className="size-4" />
-          </button>
-          <div className="size-10 overflow-hidden rounded-full outline outline-1 outline-offset-[-1px] outline-white/20">
-            <img className="size-full object-cover" src="https://placehold.co/38x38" alt="Alex's profile avatar" />
-          </div>
-        </div>
-      </header>
-
-      {/* Title + Create Deck */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold leading-tight text-cyan-50 sm:text-5xl sm:leading-[56px]">
-            Flashcards
-          </h1>
-          <p className="text-base leading-6 text-neutral-300">
-            Master your Knowledge Library through spaced repetition.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="relative flex items-center justify-center gap-2 self-start overflow-hidden rounded-full bg-linear-76 from-cyan-400/80 to-emerald-300/80 px-6 py-2 text-xs font-semibold tracking-wide text-emerald-950 shadow-[0px_0px_15px_0px_rgba(0,245,255,0.30)] sm:self-auto"
-        >
-          <Plus className="size-3.5" />
-          Create Deck
-          <span className="absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
-        </button>
-      </div>
+      <PageHeader
+        title="Flashcards"
+        subtitle="Master your Knowledge Library through spaced repetition."
+        actions={
+          <>
+            <div className="relative w-full sm:w-80">
+              <Search className="pointer-events-none absolute left-4 top-1/2 z-10 size-4 -translate-y-1/2 text-zinc-300" strokeWidth={2.5} />
+              <input
+                type="search"
+                placeholder="Search documents..."
+                className="w-full rounded-xl bg-white/5 py-3 pl-12 pr-4 text-sm text-zinc-200 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[6px] placeholder:text-neutral-300/50 focus:outline-cyan-400/50"
+              />
+            </div>
+            <button
+              type="button"
+              className="group relative flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-xl bg-linear-76 from-cyan-400 to-emerald-300 px-6 text-sm font-bold tracking-wide text-neutral-900 shadow-[0px_0px_20px_0px_rgba(0,245,255,0.45)] outline outline-1 outline-offset-[-1px] outline-white/30 transition-transform hover:scale-[1.02]"
+            >
+              <Plus className="size-4" strokeWidth={2.5} />
+              Create Deck
+              <span className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
+            </button>
+          </>
+        }
+      />
 
       {/* Decks + right rail */}
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
