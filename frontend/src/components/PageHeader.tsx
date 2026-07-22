@@ -15,7 +15,11 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
           {title}
         </h1>
 
-        {subtitle && (<p className="text-base leading-6 text-neutral-300">{subtitle}</p>)}
+        {subtitle && (
+          <p className="text-base leading-6 text-neutral-300">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {actions && (

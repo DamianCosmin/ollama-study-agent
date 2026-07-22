@@ -2,7 +2,7 @@ import { Search, SlidersHorizontal, UploadCloud } from "lucide-react";
 import LibraryCard, { ILibraryCard } from "../components/LibraryCard.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
 
-const DOCUMENTS: Array<ILibraryCard> = [
+const DOCUMENTS: ILibraryCard[] = [
   {
     id: "4fdf2489-39a5-4b4d-a58f-3fe60f9f1c8c",
     title: "Introduction to Machine Learning.pdf",
@@ -75,12 +75,8 @@ export default function LibraryPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {DOCUMENTS.map((doc, index) => (
           <LibraryCard 
-            id={doc.id}
             key={index}
-            title={doc.title}
-            uploadDate={doc.uploadDate}
-            status={doc.status}
-            nrPages={doc.nrPages}
+            card={doc}
           />
         ))}
       </div>

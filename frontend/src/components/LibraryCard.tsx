@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { FileText, FileWarning, Trash2, Layers } from "lucide-react";
+import { FileText, FileWarning, Trash2, Layers, type LucideIcon } from "lucide-react";
 
 export type LibraryCardTag = "Vectorized" | "Extracting concepts" | "Failed to parse";
 
 export interface ILibraryCard {
-  id: string,
-  title: string,
-  uploadDate: Date,
-  status: string,
-  nrPages: number,
+  id: string;
+  title: string;
+  uploadDate: Date;
+  status: string;
+  nrPages: number;
 };
 
 const statusToTag: Record<string, LibraryCardTag> = {
@@ -17,7 +17,7 @@ const statusToTag: Record<string, LibraryCardTag> = {
   "error": "Failed to parse",
 };
 
-const statusStyles: Record<string, { icon: string; ring: string; dot: string }> = {
+const statusStyles: Record<string, {icon: string; ring: string; dot: string}> = {
   "success": {
     icon: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
     ring: "bg-emerald-400/10 outline-emerald-400/30 text-emerald-400",
@@ -45,15 +45,19 @@ function formatDate(date: Date): string {
   return `Uploaded ${formattedDate}`;
 };
 
-export default function LibraryCard({title, uploadDate, status, nrPages} : ILibraryCard) {
+export interface LibraryCardProps {
+  card: ILibraryCard;
+}
+
+export default function LibraryCard({card} : LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const Icon = status === "error" ? FileWarning : FileText;
-  const Tag: LibraryCardTag = statusToTag[status] || "Failed to parse";
-  const styles: {icon: string, ring: string, dot: string} = statusStyles[status] ?? statusStyles.error;
+  const Icon: LucideIcon = card.status === "error" ? FileWarning : FileText;
+  const Tag: LibraryCardTag = statusToTag[card.status] || "Failed to parse";
+  const styles: {icon: string, ring: string, dot: string} = statusStyles[card.status] ?? statusStyles.error;
 
   const handleDelete = () => {
     // TO-DO: Integrate with backend APIs
-    const confirmed = window.confirm(`Delete "${title}"? This can't be undone.`);
+    const confirmed = window.confirm(`Delete "${card.title}"? This can't be undone.`);
     if (!confirmed) 
       return;
 
@@ -78,8 +82,8 @@ export default function LibraryCard({title, uploadDate, status, nrPages} : ILibr
       </div>
 
       <div className="flex flex-col gap-1 pb-6">
-        <h3 className="text-base font-semibold leading-6 text-zinc-200">{title}</h3>
-        <p className="text-sm leading-5 text-neutral-300">{formatDate(uploadDate)}</p>
+        <h3 className="text-base font-semibold leading-6 text-zinc-200">{card.title}</h3>
+        <p className="text-sm leading-5 text-neutral-300">{formatDate(card.uploadDate)}</p>
       </div>
 
       <div className="flex items-center justify-between border-t border-white/5 pt-4">
@@ -100,7 +104,7 @@ export default function LibraryCard({title, uploadDate, status, nrPages} : ILibr
 
             <span className="flex items-center gap-1.5 rounded-full bg-neutral-800/50 px-3 py-1 text-xs font-semibold tracking-wide text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/5">
               <Layers className="size-3" />
-              {nrPages ?? "--"}
+              {card.nrPages ?? "--"}
             </span>
           </>
         )}
