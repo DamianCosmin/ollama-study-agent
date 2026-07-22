@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  /* Define the animation utility */
+  --animate-slow-pulse-ring: slow-pulse-ring 5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+
+  /* Define the keyframes directly inside the theme */
+  @keyframes slow-pulse-ring {
+    0% { 
+      transform: scale(1); 
+      opacity: 0.5; 
+    }
+    100% { 
+      /* Pushed the scale to 2.2 to make it definitively expand past the icon */
+      transform: scale(2.2); 
+      opacity: 0; 
+    }
+  }
+}

@@ -57,7 +57,7 @@ export default function LibraryCard({card} : LibraryCardProps) {
 
   const handleDelete = () => {
     // TO-DO: Integrate with backend APIs
-    const confirmed = window.confirm(`Delete "${card.title}"? This can't be undone.`);
+    const confirmed = window.confirm(`Delete "${card.title}"?\n\nThis action cannot be undone. All flashcards and decks related to this document will be permanently deleted!`);
     if (!confirmed) 
       return;
 
