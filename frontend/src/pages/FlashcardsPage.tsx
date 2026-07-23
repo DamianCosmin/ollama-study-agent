@@ -179,7 +179,12 @@ export default function FlashcardsPage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {visibleDecks.map((deck) => (
-              <DeckCard deck={deck} />
+              <DeckCard 
+                deck={deck}
+                onStart={() => {}}
+                onRename={() => {}}
+                onDelete={() => {}}
+              />
             ))}
           </div>
         </div>
