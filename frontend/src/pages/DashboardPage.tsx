@@ -1,4 +1,4 @@
-import { Search, Bell, UploadCloud, Clock, MoreVertical } from "lucide-react";
+import { SearchIcon, BellIcon, UploadCloudIcon, ClockIcon, MoreVerticalIcon } from "lucide-react";
 
 const NEXT_UP = [
   {
@@ -47,10 +47,10 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-4">
           <button type="button" className="rounded-full p-2 text-neutral-300 hover:text-cyan-400" aria-label="Search">
-            <Search className="size-5" />
+            <SearchIcon className="size-5" />
           </button>
           <button type="button" className="rounded-full p-2 text-neutral-300 hover:text-cyan-400" aria-label="Notifications">
-            <Bell className="size-5" />
+            <BellIcon className="size-5" />
           </button>
           <div className="relative size-10 overflow-hidden rounded-full bg-zinc-800 outline outline-1 outline-offset-[-1px] outline-white/20">
             <img
@@ -86,13 +86,13 @@ export default function DashboardPage() {
                   {item.difficulty}
                 </span>
                 <button type="button" className="text-neutral-300" aria-label="Card options">
-                  <MoreVertical className="size-5" />
+                  <MoreVerticalIcon className="size-5" />
                 </button>
               </div>
               <div className="text-2xl font-bold leading-8 text-zinc-200">{item.subject}</div>
               <div className="text-sm leading-5 text-neutral-300">{item.topic}</div>
               <div className="flex items-center gap-2 pt-3">
-                <Clock className="size-3.5 text-emerald-400" />
+                <ClockIcon className="size-3.5 text-emerald-400" />
                 <span className="text-sm leading-5 text-zinc-200">{item.cardsDue} Cards Due</span>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
       <section className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
         <div className="flex min-h-56 flex-1 flex-col items-center justify-center gap-4 rounded-xl bg-white/5 p-8 text-center outline outline-2 outline-offset-[-2px] outline-cyan-400/30 backdrop-blur-[10px] sm:min-h-48">
           <div className="flex size-16 items-center justify-center rounded-full bg-cyan-400/10 shadow-[0px_0px_20px_0px_rgba(0,245,255,0.20)]">
-            <UploadCloud className="size-7 text-cyan-400" />
+            <UploadCloudIcon className="size-7 text-cyan-400" />
           </div>
           <h3 className="text-xl font-bold leading-8 text-zinc-200 sm:text-2xl">
             Drop Lecture Materials Here

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
-import { FileText, FileWarning, Trash2, Layers, type LucideIcon } from "lucide-react";
+import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon } from "lucide-react";
 import LibraryCardModal from "../components/LibraryCardModal.tsx";
 
 export type LibraryCardTag = "Vectorized" | "Extracting concepts" | "Failed to parse";
@@ -57,7 +57,7 @@ export default function LibraryCard({ card, onDelete }: LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const Icon: LucideIcon = card.status === "error" ? FileWarning : FileText;
+  const Icon: LucideIcon = card.status === "error" ? FileWarningIcon : FileTextIcon;
   const Tag: LibraryCardTag = statusToTag[card.status] || "Failed to parse";
   const styles: { icon: string; ring: string; dot: string } = statusStyles[card.status] ?? statusStyles.error;
 
@@ -81,7 +81,7 @@ export default function LibraryCard({ card, onDelete }: LibraryCardProps) {
           disabled={isDeleting}
           className="rounded-md p-1 text-neutral-300 transition-colors hover:bg-red-400/10 hover:text-red-300"
         >
-          <Trash2 className="size-4" />
+          <Trash2Icon className="size-4" />
         </button>
       </div>
 
@@ -105,7 +105,7 @@ export default function LibraryCard({ card, onDelete }: LibraryCardProps) {
             </span>
 
             <span className="flex items-center gap-1.5 rounded-full bg-neutral-800/50 px-3 py-1 text-xs font-semibold tracking-wide text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/5">
-              <Layers className="size-3" />
+              <LayersIcon className="size-3" />
               {card.nrPages ?? "--"}
             </span>
           </>

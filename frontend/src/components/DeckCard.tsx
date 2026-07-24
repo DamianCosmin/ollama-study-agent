@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { CATEGORIES } from "../utils/subjects.ts";
 import { LayersIcon, type LucideIcon } from "lucide-react";
 import DeckCardModal from "./DeckCardModal.tsx";
+import { CATEGORIES } from "../utils/subjects.ts";
 
 export interface IDeckCard {
   id: string;

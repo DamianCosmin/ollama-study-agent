@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, SlidersHorizontal } from "lucide-react";
+import { SearchIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
 import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer, { IRecentAnswer } from "../components/RecentAnswer.tsx";
 import DeckCard, { IDeckCard } from "../components/DeckCard.tsx";
@@ -116,7 +116,7 @@ export default function FlashcardsPage() {
         actions={
           <>
             <div className="relative w-full sm:w-80">
-              <Search className="pointer-events-none absolute left-4 top-1/2 z-10 size-4 -translate-y-1/2 text-zinc-300" strokeWidth={2.5} />
+              <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 size-4 -translate-y-1/2 text-zinc-300" strokeWidth={2.5} />
               <input
                 type="search"
                 placeholder="Search documents..."
@@ -129,14 +129,14 @@ export default function FlashcardsPage() {
               className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10"
               aria-label="Filter documents"
             >
-              <SlidersHorizontal className="size-4" />
+              <SlidersHorizontalIcon className="size-4" />
             </button>
 
             <button
               type="button"
               className="group relative flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-xl bg-linear-76 from-cyan-400 to-emerald-300 px-6 text-sm font-bold tracking-wide text-neutral-900 shadow-[0px_0px_20px_0px_rgba(0,245,255,0.45)] outline outline-1 outline-offset-[-1px] outline-white/30 transition-transform hover:scale-[1.02]"
             >
-              <Plus className="size-4" strokeWidth={2.5} />
+              <PlusIcon className="size-4" strokeWidth={2.5} />
               Create Deck
               <span className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
             </button>

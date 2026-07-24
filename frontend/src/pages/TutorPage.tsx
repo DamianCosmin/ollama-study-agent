@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Bot, ArrowUp } from "lucide-react";
+import { BotIcon, ArrowUpIcon } from "lucide-react";
 import { PageHeader } from "../components/PageHeader.tsx";
 import "../App.css";
 
@@ -32,7 +32,7 @@ export default function TutorPage() {
             <span
               className="absolute inset-0 rounded-full outline outline-1 outline-cyan-400/20 motion-safe:animate-slow-pulse-ring"
             />
-            <Bot className="size-7 text-cyan-400" />
+            <BotIcon className="size-7 text-cyan-400" />
           </span>
 
           <div className="flex flex-col gap-1.5">
@@ -63,7 +63,7 @@ export default function TutorPage() {
               aria-label="Send message"
               className="flex size-9 shrink-0 items-center justify-center rounded-full bg-cyan-400 text-neutral-950 transition hover:bg-cyan-300"
             >
-              <ArrowUp className="size-4" strokeWidth={2.5} />
+              <ArrowUpIcon className="size-4" strokeWidth={2.5} />
             </button>
           </div>
         </div>

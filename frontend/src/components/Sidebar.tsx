@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { Settings, X, LayoutDashboard, Library, Layers, Bot } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { SettingsIcon, XIcon, LayoutDashboardIcon, LibraryIcon, LayersIcon, BotIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 
 export type NavItem = {
   label: string;
@@ -9,10 +9,10 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard },
-  { label: "Knowledge Library", path: "/library", icon: Library },
-  { label: "Flashcards", path: "/flashcards", icon: Layers },
-  { label: "AI Tutor", path: "/tutor", icon: Bot },
+  { label: "Dashboard", path: "/", icon: LayoutDashboardIcon },
+  { label: "Knowledge Library", path: "/library", icon: LibraryIcon },
+  { label: "Flashcards", path: "/flashcards", icon: LayersIcon },
+  { label: "AI Tutor", path: "/tutor", icon: BotIcon },
 ];
 
 type SidebarProps = {
@@ -54,11 +54,11 @@ export function Sidebar({ onNavigate, onClose, variant = "desktop" }: SidebarPro
             className="text-neutral-300"
             aria-label="Close menu"
             >
-              <X className="size-5" />
+              <XIcon className="size-5" />
             </button>
           )}
         </div>
-        
+
         <div className="border-t border-white/10" />
       </div>
 
@@ -83,7 +83,7 @@ export function Sidebar({ onNavigate, onClose, variant = "desktop" }: SidebarPro
         className="flex items-center gap-4 rounded-lg px-4 py-2 text-left text-sm text-neutral-300 hover:text-zinc-200"
         >
 
-        <Settings className="size-4" />
+        <SettingsIcon className="size-4" />
           Settings
         </button>
       </div>

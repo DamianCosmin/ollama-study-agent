@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 
-export function MainLayout() {
+export default function MainLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
@@ -46,7 +46,7 @@ export function MainLayout() {
               className="rounded-lg bg-white/5 p-2 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10"
               aria-label="Open menu"
             >
-              <Menu className="size-5" />
+              <MenuIcon className="size-5" />
             </button>
             <span className="text-sm font-semibold text-cyan-400">Study Agent</span>
           </div>
