@@ -11,15 +11,15 @@ export interface RecentAnswerProps {
 }
 
 const DIFFICULTY_STYLES: Record<string, {stripe: string; tag: string;}> = {
-  "easy": {
+  easy: {
     stripe: "bg-emerald-400",
     tag: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
   },
-  "medium": {
+  medium: {
     stripe: "bg-cyan-400",
     tag: "text-cyan-300 bg-cyan-300/10 outline-cyan-300/20",
   },
-  "hard": {
+  hard: {
     stripe: "bg-red-400",
     tag: "text-red-300 bg-red-300/10 outline-red-300/20",
   },

@@ -15,23 +15,23 @@ export interface ILibraryCard {
 };
 
 const statusToTag: Record<string, LibraryCardTag> = {
-  "success": "Vectorized",
-  "processing": "Extracting concepts",
-  "error": "Failed to parse",
+  success: "Vectorized",
+  processing: "Extracting concepts",
+  error: "Failed to parse",
 };
 
 const statusStyles: Record<string, { icon: string; ring: string; dot: string }> = {
-  "success": {
+  success: {
     icon: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
     ring: "bg-emerald-400/10 outline-emerald-400/30 text-emerald-400",
     dot: "bg-emerald-400",
   },
-  "processing": {
+  processing: {
     icon: "text-cyan-300 bg-cyan-300/10 outline-cyan-300/20",
     ring: "bg-cyan-400/10 outline-cyan-400/30 text-cyan-400",
     dot: "animate-pulse bg-cyan-400",
   },
-  "error": {
+  error: {
     icon: "text-red-300 bg-red-300/10 outline-red-300/20",
     ring: "bg-red-400/10 outline-red-400/30 text-red-400",
     dot: "bg-red-400",
