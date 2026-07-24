@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence } from "framer-motion";
 import { FileText, FileWarning, Trash2, Layers, type LucideIcon } from "lucide-react";
+import LibraryCardModal from "../components/LibraryCardModal.tsx";
 
 export type LibraryCardTag = "Vectorized" | "Extracting concepts" | "Failed to parse";
 
@@ -17,7 +20,7 @@ const statusToTag: Record<string, LibraryCardTag> = {
   "error": "Failed to parse",
 };
 
-const statusStyles: Record<string, {icon: string; ring: string; dot: string}> = {
+const statusStyles: Record<string, { icon: string; ring: string; dot: string }> = {
   "success": {
     icon: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
     ring: "bg-emerald-400/10 outline-emerald-400/30 text-emerald-400",
@@ -36,10 +39,10 @@ const statusStyles: Record<string, {icon: string; ring: string; dot: string}> = 
 };
 
 function formatDate(date: Date): string {
-  const formattedDate = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   }).format(date);
 
   return `Uploaded ${formattedDate}`;
@@ -47,33 +50,34 @@ function formatDate(date: Date): string {
 
 export interface LibraryCardProps {
   card: ILibraryCard;
+  onDelete?: (id: string) => void;
 }
 
-export default function LibraryCard({card} : LibraryCardProps) {
+export default function LibraryCard({ card, onDelete }: LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   const Icon: LucideIcon = card.status === "error" ? FileWarning : FileText;
   const Tag: LibraryCardTag = statusToTag[card.status] || "Failed to parse";
-  const styles: {icon: string, ring: string, dot: string} = statusStyles[card.status] ?? statusStyles.error;
+  const styles: { icon: string; ring: string; dot: string } = statusStyles[card.status] ?? statusStyles.error;
 
-  const handleDelete = () => {
-    // TO-DO: Integrate with backend APIs
-    const confirmed = window.confirm(`Delete "${card.title}"?\n\nThis action cannot be undone. All flashcards and decks related to this document will be permanently deleted!`);
-    if (!confirmed) 
-      return;
-
+  const handleConfirmDelete = () => {
     setIsDeleting(true);
+    setIsConfirmOpen(false);
+    onDelete?.(card.id);
+    // TO-DO: Integrate with backend APIs
   };
 
-  return(
+  return (
     <div className="flex min-h-48 flex-col justify-between rounded-xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
       <div className="flex items-start justify-between pb-6">
         <div className={`flex size-12 items-center justify-center rounded-lg outline outline-1 outline-offset-[-1px] ${styles.icon}`}>
           <Icon className="size-5" />
         </div>
-          
+
         <button
           type="button"
-          onClick={handleDelete}
+          onClick={() => setIsConfirmOpen(true)}
           disabled={isDeleting}
           className="rounded-md p-1 text-neutral-300 transition-colors hover:bg-red-400/10 hover:text-red-300"
         >
@@ -87,12 +91,10 @@ export default function LibraryCard({card} : LibraryCardProps) {
       </div>
 
       <div className="flex items-center justify-between border-t border-white/5 pt-4">
-        {status === "error" ? (
-          <>
-            <span className="rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-red-300 outline outline-1 outline-offset-[-1px] outline-red-300/30">
-              {Tag}
-            </span>
-          </>
+        {card.status === "error" ? (
+          <span className="rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-red-300 outline outline-1 outline-offset-[-1px] outline-red-300/30">
+            {Tag}
+          </span>
         ) : (
           <>
             <span
@@ -109,6 +111,20 @@ export default function LibraryCard({card} : LibraryCardProps) {
           </>
         )}
       </div>
+
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {isConfirmOpen && (
+              <LibraryCardModal
+                title={card.title}
+                onCancel={() => setIsConfirmOpen(false)}
+                onConfirm={handleConfirmDelete}
+              />
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 }
