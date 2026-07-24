@@ -2,19 +2,12 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayersIcon, type LucideIcon } from "lucide-react";
+
 import DeckCardModal from "./DeckCardModal.tsx";
 import { CATEGORIES } from "../utils/subjects.ts";
-
-export interface IDeckCard {
-  id: string;
-  title: string;
-  difficulty: string;
-  category: string;
-  createdAt: Date;
-  lastAccessed: Date;
-  totalCards: number;
-  lastAnsweredIndex: number;
-};
+import { DIFFICULTY_STYLES } from "../utils/styles.ts";
+import { IDeckCard } from "../utils/types.ts";
+import { formatLastAccessedDate } from "../utils/functions.ts";
 
 export interface DeckCardProps {
   deck: IDeckCard;
@@ -23,35 +16,12 @@ export interface DeckCardProps {
   onDelete?: (id: string) => void;
 }
 
-const DIFFICULTY_STYLES: Record<string, string> = {
-  easy: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
-  medium: "text-cyan-300 bg-cyan-300/10 outline-cyan-300/20",
-  hard: "text-red-300 bg-red-300/10 outline-red-300/20",
-};
-
-export function formatLastAccessedDate(date: Date): string {
-  const now = new Date();
-
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-  const diffDays = Math.round((todayStart.getTime() - dateStart.getTime()) / 86400000);
-
-  if (diffDays === 0) {
-    return "Today";
-  } else if (diffDays === 1) {
-    return "Yesterday";
-  } else {
-    return `${diffDays}d ago`;
-  }
-}
-
 export default function DeckCard({deck, onStart, onRename, onDelete}: DeckCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const categoryAssets: {icon: LucideIcon; name: string; color: string} = CATEGORIES[deck.category] ?? CATEGORIES.general;
   const DeckIcon: LucideIcon = categoryAssets.icon;
-  const dueCards: number = deck.totalCards - deck.lastAnsweredIndex + 1;
+  const dueCards: number = deck.totalCards - deck.lastAnsweredIndex - 1;
   const difficultyStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()] ?? DIFFICULTY_STYLES.medium;
   
   const layoutId = `deck-card-${deck.id}`;

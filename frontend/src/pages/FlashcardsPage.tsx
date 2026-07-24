@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { SearchIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
+
 import { PageHeader } from "../components/PageHeader.tsx";
-import RecentAnswer, { IRecentAnswer } from "../components/RecentAnswer.tsx";
-import DeckCard, { IDeckCard } from "../components/DeckCard.tsx";
+import RecentAnswer from "../components/RecentAnswer.tsx";
+import DeckCard from "../components/DeckCard.tsx";
+import { IRecentAnswer, IDeckCard } from "../utils/types.ts";
 
 const DECKS: IDeckCard[] = [
   {
@@ -23,7 +25,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-05-10T14:20:00"),
     lastAccessed: new Date("2026-07-20T16:45:00"),
     totalCards: 185,
-    lastAnsweredIndex: 185,
+    lastAnsweredIndex: 183,
   },
   {
     id: "123e4567-e89b-12d3-a456-426614174000",
@@ -53,7 +55,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-06-25T08:45:00"),
     lastAccessed: new Date("2026-07-15T09:10:00"),
     totalCards: 210,
-    lastAnsweredIndex: 211,
+    lastAnsweredIndex: 209,
   },
   {
     id: "e94b415a-7183-4a6c-95b6-7248103c812e",
@@ -105,7 +107,7 @@ const DAILY_TARGET = { completed: 25, target: 40 };
 
 export default function FlashcardsPage() {
   const [filter, setFilter] = useState<"all" | "due">("all");
-  const visibleDecks: IDeckCard[] = filter === "due" ? DECKS.filter((d) => d.lastAnsweredIndex <= d.totalCards) : DECKS;
+  const visibleDecks: IDeckCard[] = filter === "due" ? DECKS.filter((d) => d.lastAnsweredIndex < d.totalCards - 1) : DECKS;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
 
   return (

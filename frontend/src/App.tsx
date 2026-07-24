@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import LibraryPage from "./pages/LibraryPage.tsx";
 import FlashcardsPage from "./pages/FlashcardsPage.tsx";
+import FlashcardsSessionPage from "./pages/FlashcardsSessionPage.tsx";
 import TutorPage from "./pages/TutorPage.tsx";
 
 function App() {
@@ -14,6 +15,8 @@ function App() {
         <Route path="/flashcards" element={<FlashcardsPage />} />
         <Route path="/tutor" element={<TutorPage />} />
       </Route>
+
+      <Route path="/flashcards/session" element={<FlashcardsSessionPage />} />
     </Routes>
   );
 }

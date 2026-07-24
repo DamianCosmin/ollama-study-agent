@@ -1,6 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { SettingsIcon, XIcon, LayoutDashboardIcon, LibraryIcon, LayersIcon, BotIcon } from "lucide-react";
-import { type LucideIcon } from "lucide-react";
+import { SettingsIcon, XIcon, LayoutDashboardIcon, LibraryIcon, LayersIcon, BotIcon, type LucideIcon } from "lucide-react";
 
 export type NavItem = {
   label: string;
@@ -15,7 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "AI Tutor", path: "/tutor", icon: BotIcon },
 ];
 
-type SidebarProps = {
+interface SidebarProps {
   // Only used by the mobile drawer variant
   onNavigate?: () => void;
   onClose?: () => void;

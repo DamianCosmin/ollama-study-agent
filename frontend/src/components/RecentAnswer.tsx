@@ -1,10 +1,4 @@
-export interface IRecentAnswer {
-  id: number;
-  question: string;
-  deckName: string;
-  answerDate: Date;
-  difficulty: string;
-};
+import { IRecentAnswer } from "../utils/types";
 
 export interface RecentAnswerProps {
   answer: IRecentAnswer;

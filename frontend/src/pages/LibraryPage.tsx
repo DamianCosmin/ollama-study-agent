@@ -1,6 +1,7 @@
 import { SearchIcon, SlidersHorizontalIcon, UploadCloudIcon } from "lucide-react";
-import LibraryCard, { ILibraryCard } from "../components/LibraryCard.tsx";
+import LibraryCard from "../components/LibraryCard.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
+import { ILibraryCard } from "../utils/types.ts";
 
 const DOCUMENTS: ILibraryCard[] = [
   {

@@ -2,17 +2,9 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
 import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon } from "lucide-react";
+
+import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
 import LibraryCardModal from "../components/LibraryCardModal.tsx";
-
-export type LibraryCardTag = "Vectorized" | "Extracting concepts" | "Failed to parse";
-
-export interface ILibraryCard {
-  id: string;
-  title: string;
-  uploadDate: Date;
-  status: string;
-  nrPages: number;
-};
 
 const statusToTag: Record<string, LibraryCardTag> = {
   success: "Vectorized",

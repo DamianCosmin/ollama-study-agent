@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LayersIcon, PlayIcon, PencilIcon, Trash2Icon, XIcon, type LucideIcon } from "lucide-react";
-import { IDeckCard, formatLastAccessedDate } from "./DeckCard.tsx";
+
+import { IDeckCard } from "../utils/types";
+import { formatLastAccessedDate } from "../utils/functions";
 
 interface DeckCardModalProps {
   deck: IDeckCard;
