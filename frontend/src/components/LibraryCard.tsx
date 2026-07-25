@@ -6,24 +6,21 @@ import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon 
 import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
 import LibraryCardModal from "../components/LibraryCardModal.tsx";
 
-const statusToTag: Record<string, LibraryCardTag> = {
-  success: "Vectorized",
-  processing: "Extracting concepts",
-  error: "Failed to parse",
-};
-
-const statusStyles: Record<string, { icon: string; ring: string; dot: string }> = {
+const statusAttributes: Record<string, {tag: LibraryCardTag, icon: string; ring: string; dot: string}> = {
   success: {
+    tag: "Vectorized",
     icon: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
     ring: "bg-emerald-400/10 outline-emerald-400/30 text-emerald-400",
     dot: "bg-emerald-400",
   },
   processing: {
+    tag: "Extracting concepts",
     icon: "text-cyan-300 bg-cyan-300/10 outline-cyan-300/20",
     ring: "bg-cyan-400/10 outline-cyan-400/30 text-cyan-400",
     dot: "animate-pulse bg-cyan-400",
   },
   error: {
+    tag: "Failed to parse",
     icon: "text-red-300 bg-red-300/10 outline-red-300/20",
     ring: "bg-red-400/10 outline-red-400/30 text-red-400",
     dot: "bg-red-400",
@@ -50,8 +47,8 @@ export default function LibraryCard({ card, onDelete }: LibraryCardProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const Icon: LucideIcon = card.status === "error" ? FileWarningIcon : FileTextIcon;
-  const Tag: LibraryCardTag = statusToTag[card.status] || "Failed to parse";
-  const styles: { icon: string; ring: string; dot: string } = statusStyles[card.status] ?? statusStyles.error;
+  const Tag: LibraryCardTag = statusAttributes[card.status].tag || "Failed to parse";
+  const styles: {tag: LibraryCardTag, icon: string; ring: string; dot: string} = statusAttributes[card.status] ?? statusAttributes.error;
 
   const handleConfirmDelete = () => {
     setIsDeleting(true);

@@ -22,7 +22,7 @@ export default function DeckCard({deck, onStart, onRename, onDelete}: DeckCardPr
   const categoryAssets: {icon: LucideIcon; name: string; color: string} = CATEGORIES[deck.category] ?? CATEGORIES.general;
   const DeckIcon: LucideIcon = categoryAssets.icon;
   const dueCards: number = deck.totalCards - deck.lastToAnswer + 1;
-  const difficultyStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()] ?? DIFFICULTY_STYLES.medium;
+  const difficultyTagStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()].tag ?? DIFFICULTY_STYLES.medium.tag;
   
   const layoutId = `deck-card-${deck.id}`;
 
@@ -48,7 +48,7 @@ export default function DeckCard({deck, onStart, onRename, onDelete}: DeckCardPr
             <DeckIcon className={`size-5 ${categoryAssets.color}`} />
           </div>
 
-          <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyStyle}`}>
+          <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyTagStyle}`}>
             {deck.difficulty.toUpperCase()}
           </span>
         </div>
@@ -84,7 +84,7 @@ export default function DeckCard({deck, onStart, onRename, onDelete}: DeckCardPr
                 deck={deck}
                 layoutId={layoutId}
                 categoryAssets={categoryAssets}
-                difficultyStyle={difficultyStyle}
+                difficultyTagStyle={difficultyTagStyle}
                 dueCards={dueCards}
                 onClose={() => setIsOpen(false)}
                 onStart={onStart}

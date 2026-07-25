@@ -8,7 +8,7 @@ export default function MainLayout() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-neutral-900">
-      {/* Background gradients (liquid-glass effect base) */}
+      {/* Background gradients - liquid-glass effect base */}
       <div className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full bg-cyan-400/20 blur-[100px] sm:size-[500px] lg:size-[800px]" />
       <div className="pointer-events-none absolute -bottom-24 -right-24 size-64 rounded-full bg-emerald-400/20 blur-[100px] sm:size-[400px] lg:size-[600px]" />
 
@@ -38,7 +38,7 @@ export default function MainLayout() {
 
         {/* Dynamic page content */}
         <div className="flex w-full flex-1 flex-col lg:pl-[19rem]">
-          {/* Mobile top bar — gives the drawer somewhere to open from */}
+          {/* Mobile top bar */}
           <div className="flex items-center gap-3 px-4 pt-4 lg:hidden">
             <button
               type="button"
@@ -51,7 +51,7 @@ export default function MainLayout() {
             <span className="text-sm font-semibold text-cyan-400">Study Agent</span>
           </div>
 
-          <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <main className="relative z-10 flex-1 overflow-y-auto overscroll-y-none p-4 sm:p-6 lg:p-8">
             <Outlet />
           </main>
         </div>

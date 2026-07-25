@@ -1,23 +1,9 @@
-import { IRecentAnswer } from "../utils/types";
+import { IRecentAnswer } from "../utils/types.ts";
+import { DIFFICULTY_STYLES } from "../utils/styles.ts";
 
 export interface RecentAnswerProps {
   answer: IRecentAnswer;
 }
-
-const DIFFICULTY_STYLES: Record<string, {stripe: string; tag: string;}> = {
-  easy: {
-    stripe: "bg-emerald-400",
-    tag: "text-emerald-300 bg-emerald-300/10 outline-emerald-300/20",
-  },
-  medium: {
-    stripe: "bg-cyan-400",
-    tag: "text-cyan-300 bg-cyan-300/10 outline-cyan-300/20",
-  },
-  hard: {
-    stripe: "bg-red-400",
-    tag: "text-red-300 bg-red-300/10 outline-red-300/20",
-  },
-};
 
 function formatAnswerDate(date: Date): string {
   const now = new Date();
@@ -40,7 +26,7 @@ function formatAnswerDate(date: Date): string {
 }
 
 export default function RecentAnswer({answer}: RecentAnswerProps) {
-  const styles: {stripe: string; tag: string;} = DIFFICULTY_STYLES[answer.difficulty] ?? DIFFICULTY_STYLES.easy; 
+  const styles: {tag: string, stripe: string} = DIFFICULTY_STYLES[answer.difficulty] ?? DIFFICULTY_STYLES.easy; 
 
   return (
     <div 

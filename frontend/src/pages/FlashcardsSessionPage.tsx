@@ -95,7 +95,7 @@ export default function FlashcardsSessionPage() {
 
   const Icon: LucideIcon = CATEGORIES[MOCK_DECK.category].icon ?? CATEGORIES.general.icon;
   const iconColor: string = CATEGORIES[MOCK_DECK.category].color ?? CATEGORIES.general.color;
-  const difficultyStyle: string= DIFFICULTY_STYLES[currentCard?.difficulty?.toLowerCase()] ?? DIFFICULTY_STYLES.medium;
+  const difficultyTagStyle: string = DIFFICULTY_STYLES[currentCard?.difficulty?.toLowerCase()].tag ?? DIFFICULTY_STYLES.medium.tag;
 
   const goToIndex = useCallback(
     (nextIndex: number, dir: number) => {
@@ -246,7 +246,7 @@ export default function FlashcardsSessionPage() {
                     <div className="flex size-11 items-center justify-center rounded-lg bg-white/10 outline outline-1 outline-offset-[-1px] outline-white/20 backdrop-blur-[20px]">
                       <Icon className={`size-5 ${iconColor}`} />
                     </div>
-                    <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyStyle}`}>
+                    <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyTagStyle}`}>
                       {currentCard.difficulty.toUpperCase()}
                     </span>
                   </div>
@@ -270,7 +270,7 @@ export default function FlashcardsSessionPage() {
                     <div className="flex size-11 items-center justify-center rounded-lg bg-white/10 outline outline-1 outline-offset-[-1px] outline-white/20 backdrop-blur-[20px]">
                       <Icon className={`size-5 ${iconColor}`} />
                     </div>
-                    <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyStyle}`}>
+                    <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyTagStyle}`}>
                       {currentCard.difficulty.toUpperCase()}
                     </span>
                   </div>

@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LayersIcon, PlayIcon, PencilIcon, Trash2Icon, XIcon, type LucideIcon } from "lucide-react";
 
-import { IDeckCard } from "../utils/types";
-import { formatLastAccessedDate } from "../utils/functions";
+import { IDeckCard } from "../utils/types.ts";
+import { formatLastAccessedDate } from "../utils/functions.ts";
 
 interface DeckCardModalProps {
   deck: IDeckCard;
   layoutId: string;
   categoryAssets: {icon: LucideIcon; name: string; color: string};
-  difficultyStyle: string;
+  difficultyTagStyle: string;
   dueCards: number;
   onClose: () => void;
   onStart?: (id: string) => void;
@@ -21,7 +21,7 @@ export default function DeckCardModal({
   deck,
   layoutId,
   categoryAssets,
-  difficultyStyle,
+  difficultyTagStyle,
   dueCards,
   onClose,
   onStart,
@@ -78,7 +78,7 @@ export default function DeckCardModal({
             <DeckIcon className={`size-6 ${categoryAssets.color} sm:size-7`} />
           </div>
 
-          <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyStyle}`}>
+          <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyTagStyle}`}>
             {deck.difficulty.toUpperCase()}
           </span>
         </div>
