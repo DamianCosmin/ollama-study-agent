@@ -21,7 +21,7 @@ export default function DeckCard({deck, onStart, onRename, onDelete}: DeckCardPr
 
   const categoryAssets: {icon: LucideIcon; name: string; color: string} = CATEGORIES[deck.category] ?? CATEGORIES.general;
   const DeckIcon: LucideIcon = categoryAssets.icon;
-  const dueCards: number = deck.totalCards - deck.lastAnsweredIndex - 1;
+  const dueCards: number = deck.totalCards - deck.lastToAnswer + 1;
   const difficultyStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()] ?? DIFFICULTY_STYLES.medium;
   
   const layoutId = `deck-card-${deck.id}`;

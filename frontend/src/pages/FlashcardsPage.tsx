@@ -15,7 +15,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-06-15T10:30:00"),
     lastAccessed: new Date("2026-07-22T08:15:00"),
     totalCards: 240,
-    lastAnsweredIndex: 198,
+    lastToAnswer: 198,
   },
   {
     id: "550e8400-e29b-41d4-a716-446655440000",
@@ -25,7 +25,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-05-10T14:20:00"),
     lastAccessed: new Date("2026-07-20T16:45:00"),
     totalCards: 185,
-    lastAnsweredIndex: 183,
+    lastToAnswer: 185,
   },
   {
     id: "123e4567-e89b-12d3-a456-426614174000",
@@ -35,7 +35,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-07-01T09:00:00"),
     lastAccessed: new Date("2026-07-21T19:30:00"),
     totalCards: 320,
-    lastAnsweredIndex: 45,
+    lastToAnswer: 45,
   },
   {
     id: "8d969eef-6ec9-4c8d-8a2b-923f0532292f",
@@ -45,7 +45,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-07-10T11:15:00"),
     lastAccessed: new Date("2026-07-18T14:20:00"),
     totalCards: 150,
-    lastAnsweredIndex: 22,
+    lastToAnswer: 22,
   },
   {
     id: "a38c23f7-9b1e-4589-8d2a-4123b3a7c65d",
@@ -55,7 +55,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-06-25T08:45:00"),
     lastAccessed: new Date("2026-07-15T09:10:00"),
     totalCards: 210,
-    lastAnsweredIndex: 209,
+    lastToAnswer: 211,
   },
   {
     id: "e94b415a-7183-4a6c-95b6-7248103c812e",
@@ -65,7 +65,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-05-20T13:00:00"),
     lastAccessed: new Date("2026-07-10T10:00:00"),
     totalCards: 400,
-    lastAnsweredIndex: 310,
+    lastToAnswer: 310,
   },
   {
     id: "b2a19f43-8e7c-4a51-9d22-1f3c8a90b4e5",
@@ -75,7 +75,7 @@ const DECKS: IDeckCard[] = [
     createdAt: new Date("2026-06-20T10:00:00"),
     lastAccessed: new Date("2026-07-21T08:30:00"),
     totalCards: 120,
-    lastAnsweredIndex: 45,
+    lastToAnswer: 45,
   }
 ];
 
@@ -107,7 +107,7 @@ const DAILY_TARGET = { completed: 25, target: 40 };
 
 export default function FlashcardsPage() {
   const [filter, setFilter] = useState<"all" | "due">("all");
-  const visibleDecks: IDeckCard[] = filter === "due" ? DECKS.filter((d) => d.lastAnsweredIndex < d.totalCards - 1) : DECKS;
+  const visibleDecks: IDeckCard[] = filter === "due" ? DECKS.filter((d) => d.lastToAnswer <= d.totalCards) : DECKS;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
 
   return (
@@ -174,7 +174,7 @@ export default function FlashcardsPage() {
                     : "bg-white/5 text-neutral-300 outline-white/10"
                 }`}
               >
-                Due Today
+                Due
               </button>
             </div>
           </div>

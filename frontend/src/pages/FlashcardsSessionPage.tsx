@@ -54,7 +54,7 @@ const MOCK_DECK: IDeckCard = {
   createdAt: new Date("2026-06-15T10:30:00"),
   lastAccessed: new Date("2026-07-22T08:15:00"),
   totalCards: 3,
-  lastAnsweredIndex: -1,
+  lastToAnswer: 1,
 }
 
 // TO-DO: Replace with real fetched Flashcards
@@ -84,14 +84,14 @@ export default function FlashcardsSessionPage() {
   const mode: SessionMode = searchParams.get("mode") === "review" ? "review" : "study";
 
   const [flashcards, setFlashcards] = useState<IFlashcard[]>(() => getMockFlashcards(deckId));
-  const [currentIndex, setCurrentIndex] = useState(MOCK_DECK.lastAnsweredIndex + 1);
+  const [currentIndex, setCurrentIndex] = useState(mode === "study" ? MOCK_DECK.lastToAnswer : 1);
   const [isFlipped, setIsFlipped] = useState(false);
   const [direction, setDirection] = useState(1);
 
   // TO-DO: Fetch deck data using the id from the params
   const total: number = MOCK_DECK.totalCards;
-  const currentCard: IFlashcard = flashcards[currentIndex];
-  const progressLabel: string = `${currentIndex + 1} / ${total}`;
+  const currentCard: IFlashcard = flashcards[currentIndex - 1];
+  const progressLabel: string = `${currentIndex} / ${total}`;
 
   const Icon: LucideIcon = CATEGORIES[MOCK_DECK.category].icon ?? CATEGORIES.general.icon;
   const iconColor: string = CATEGORIES[MOCK_DECK.category].color ?? CATEGORIES.general.color;
@@ -99,7 +99,7 @@ export default function FlashcardsSessionPage() {
 
   const goToIndex = useCallback(
     (nextIndex: number, dir: number) => {
-      if (nextIndex < 0 || nextIndex >= total) {
+      if (nextIndex < 1 || nextIndex > total) {
         return;
       }
 
@@ -128,10 +128,11 @@ export default function FlashcardsSessionPage() {
   );
 
   const handleContinue = useCallback(() => {
-    if (currentIndex + 1 >= total) {
+    if (currentIndex + 1 > total) {
       navigate("/flashcards");
       return;
     }
+
     goToIndex(currentIndex + 1, 1);
   }, [currentIndex, total, goToIndex, navigate]);
 
@@ -196,7 +197,7 @@ export default function FlashcardsSessionPage() {
         <>
           <button
             onClick={() => goToIndex(currentIndex - 1, -1)}
-            disabled={currentIndex === 0}
+            disabled={currentIndex === 1}
             aria-label="Previous card"
             className="fixed left-4 top-1/2 z-40 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] transition-colors hover:bg-white/10 disabled:opacity-30 sm:flex"
           >
@@ -205,7 +206,7 @@ export default function FlashcardsSessionPage() {
 
           <button
             onClick={() => goToIndex(currentIndex + 1, 1)}
-            disabled={currentIndex === total - 1}
+            disabled={currentIndex === total}
             aria-label="Next card"
             className="fixed right-4 top-1/2 z-40 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] transition-colors hover:bg-white/10 disabled:opacity-30 sm:flex"
           >
@@ -239,13 +240,12 @@ export default function FlashcardsSessionPage() {
                   role="button"
                   tabIndex={0}
                   style={{ backfaceVisibility: "hidden" }}
-                  className="absolute inset-0 flex cursor-pointer flex-col rounded-2xl bg-white/5 p-6 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:p-8"
+                  className="absolute inset-0 flex flex-col rounded-2xl bg-white/5 p-6 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:p-8"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex size-11 items-center justify-center rounded-lg bg-white/10 outline outline-1 outline-offset-[-1px] outline-white/20 backdrop-blur-[20px]">
                       <Icon className={`size-5 ${iconColor}`} />
                     </div>
-
                     <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyStyle}`}>
                       {currentCard.difficulty.toUpperCase()}
                     </span>
@@ -264,45 +264,45 @@ export default function FlashcardsSessionPage() {
                 {/* Back face */}
                 <div
                   style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                  className="absolute inset-0 flex flex-col rounded-2xl bg-white/5 p-6 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:p-8"
+                  className="absolute inset-0 flex flex-col rounded-2xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:p-7"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex size-11 items-center justify-center rounded-lg bg-white/10 outline outline-1 outline-offset-[-1px] outline-white/20 backdrop-blur-[20px]">
                       <Icon className={`size-5 ${iconColor}`} />
                     </div>
-
                     <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyStyle}`}>
                       {currentCard.difficulty.toUpperCase()}
                     </span>
                   </div>
 
-                  <div className="flex flex-1 flex-col items-center justify-center gap-4 px-2 py-6">
+                  <div className="flex flex-1 flex-col items-center justify-center gap-2 overflow-hidden px-2 py-3">
                     <span className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-cyan-300">
                       <EyeIcon className="size-3.5" />
                       ANSWER
                     </span>
-
-                    <p className="max-w-prose text-center text-lg font-medium leading-relaxed text-zinc-200 sm:text-xl">
+                    <p className="max-w-prose text-center text-base font-medium leading-snug text-zinc-200 sm:text-lg">
                       {currentCard.answer}
                     </p>
                   </div>
 
-                  <div className="border-t border-white/5 pt-5">
+                  <div className="border-t border-white/5 pt-3">
                     {mode === "study" && !currentCard.feedbackAnswer && (
-                      <div className="flex flex-col items-center gap-3">
-                        <span className="text-sm text-neutral-300">How well did you know this?</span>
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-xs text-neutral-300 sm:text-sm">How well did you know this?</span>
 
-                        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+                        <div className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-4">
                           {FEEDBACK_OPTIONS.map((option, idx) => (
                             <button
                               key={option.key}
                               onClick={() => handleFeedback(option.key)}
-                              className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2.5 outline outline-1 outline-offset-[-1px] transition-colors hover:bg-white/5 ${option.style}`}
+                              className={`flex w-full min-w-0 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 outline outline-1 outline-offset-[-1px] transition-colors hover:bg-white/5 ${option.style}`}
                             >
-                              <option.icon className="size-4" />
-                              <span className="text-xs font-medium">{option.label}</span>
-                              <span className="text-[10px] text-neutral-400">{option.sublabel}</span>
-                              <span className="text-[10px] text-neutral-500">Press {idx + 1}</span>
+                              <option.icon className="size-3.5 shrink-0" />
+                              <span className="w-full truncate text-center text-xs font-medium">{option.label}</span>
+                              <span className="w-full truncate text-center text-[10px] text-neutral-400">{option.sublabel}</span>
+                              <span className="hidden w-full truncate text-center text-[10px] text-neutral-500 sm:block">
+                                Press {idx + 1}
+                              </span>
                             </button>
                           ))}
                         </div>
@@ -313,20 +313,19 @@ export default function FlashcardsSessionPage() {
                       <div className="flex justify-center">
                         <button
                           onClick={handleContinue}
-                          className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-5 py-2.5 text-sm font-medium text-cyan-300 outline outline-1 outline-offset-[-1px] outline-cyan-300/30 transition-colors hover:bg-cyan-300/20"
+                          className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-5 py-2 text-sm font-medium text-cyan-300 outline outline-1 outline-offset-[-1px] outline-cyan-300/30 transition-colors hover:bg-cyan-300/20"
                         >
-                          {currentIndex + 1 >= total ? "Finish session" : "Continue"}
+                          {currentIndex + 1 > total ? "Finish session" : "Continue"}
                           <ChevronRightIcon className="size-4" />
                         </button>
                       </div>
                     )}
 
-                    {/* Mobile navigation buttons in review mode */}
                     {mode === "review" && (
                       <div className="flex justify-center gap-3 sm:hidden">
                         <button
                           onClick={() => goToIndex(currentIndex - 1, -1)}
-                          disabled={currentIndex === 0}
+                          disabled={currentIndex === 1}
                           className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 disabled:opacity-30"
                         >
                           <ChevronLeftIcon className="size-4" />
@@ -335,7 +334,7 @@ export default function FlashcardsSessionPage() {
 
                         <button
                           onClick={() => goToIndex(currentIndex + 1, 1)}
-                          disabled={currentIndex === total - 1}
+                          disabled={currentIndex === total}
                           className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 disabled:opacity-30"
                         >
                           Next
@@ -355,7 +354,7 @@ export default function FlashcardsSessionPage() {
             {flashcards.map((card, idx) => (
               <span
                 key={card.id}
-                className={`size-1.5 rounded-full ${idx === currentIndex ? "bg-cyan-400" : "bg-white/20"}`}
+                className={`size-1.5 rounded-full ${idx === currentIndex - 1 ? "bg-cyan-400" : "bg-white/20"}`}
               />
             ))}
             <span className="ml-1 text-xs text-neutral-300">{progressLabel}</span>

@@ -23,7 +23,7 @@ export interface IDeckCard {
   createdAt: Date;
   lastAccessed: Date;
   totalCards: number;
-  lastAnsweredIndex: number;
+  lastToAnswer: number;
 };
 
 // Library
