@@ -37,8 +37,8 @@ export function Sidebar({ onNavigate, onClose, variant = "desktop" }: SidebarPro
           <div className="flex items-center gap-3">
             <img
             className="size-10 rounded-full border border-cyan-400/30"
-            src="https://placehold.co/40x40"
-            alt=""
+            src="/bot-profile.svg"
+            alt="AI Agent Profile"
             />
 
             <span className="text-xl font-extrabold leading-6 text-cyan-400">

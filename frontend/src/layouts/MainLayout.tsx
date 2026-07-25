@@ -18,7 +18,7 @@ export default function MainLayout() {
           <Sidebar variant="desktop" />
         </aside>
 
-        {/* Persistent sidebar — mobile drawer */}
+        {/* Persistent sidebar - mobile drawer */}
         {mobileNavOpen && (
           <div className="fixed inset-0 z-30 flex lg:hidden">
             <div
@@ -26,6 +26,7 @@ export default function MainLayout() {
               onClick={() => setMobileNavOpen(false)}
               aria-hidden="true"
             />
+
             <div className="relative z-40 h-full w-64 bg-neutral-900 p-5 outline outline-1 outline-offset-[-1px] outline-white/10">
               <Sidebar
                 variant="mobile"
