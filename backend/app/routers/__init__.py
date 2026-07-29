@@ -1,0 +1,1 @@
+from app.routers.documents import router as documents_router

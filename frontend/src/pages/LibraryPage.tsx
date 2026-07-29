@@ -1,40 +1,47 @@
-import { SearchIcon, SlidersHorizontalIcon, UploadCloudIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SearchIcon, SlidersHorizontalIcon } from "lucide-react";
 import LibraryCard from "../components/LibraryCard.tsx";
+import UploadButton from "../components/UploadButton.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
-import { ILibraryCard } from "../utils/types.ts";
-
-const DOCUMENTS: ILibraryCard[] = [
-  {
-    id: "4fdf2489-39a5-4b4d-a58f-3fe60f9f1c8c",
-    title: "Introduction to Machine Learning.pdf",
-    uploadDate: new Date("2023-10-24T00:00:00"),
-    status: "success",
-    nrPages: 124,
-  },
-  {
-    id: "f5cb6f3d-dfbd-4729-b79a-23f36341a8c0",
-    title: "Cognitive Psychology Chapter 4.docx",
-    uploadDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    status: "processing",
-    nrPages: 0,
-  },
-  {
-    id: "d7dbe4d7-227f-4dc0-9ae4-02dfbe211d99",
-    title: "History of Ancient Rome - Lecture Notes",
-    uploadDate: new Date("2023-10-12T00:00:00"),
-    status: "success",
-    nrPages: 87,
-  },
-  {
-    id: "36fdf9be-c56c-4864-bb81-0f8e6b1acdee",
-    title: "Corrupted_Data_Set.csv",
-    uploadDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    status: "error",
-    nrPages: 0,
-  },
-];
+import { API_BASE, ILibraryCard } from "../utils/types.ts";
 
 export default function LibraryPage() {
+  const [documents, setDocuments] = useState<ILibraryCard[] | null>([]);
+
+  const fetchDocuments = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/documents`, {
+        method: "GET"
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const rawData = data.documents as Array<Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}>;
+        
+        // Converts string date from database into Date object to match ILibraryCard definition
+        const docs: ILibraryCard[] = rawData.map((doc) => {
+          const isoString: string = doc.uploadDate ? doc.uploadDate.replace(" ", "T") + "Z" : "";
+          const date = new Date(isoString);
+
+          return {
+            ...doc,
+            uploadDate: date,
+          }
+        })
+        setDocuments(docs);
+      } else {
+        console.error("Error: Failed to retrieve documents!", data);
+      }
+    } catch (err) {
+      console.error("Error: Could not connect to backend!", err);
+    }
+  }
+
+  useEffect(() => {
+    fetchDocuments()
+  }, []);
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -60,23 +67,16 @@ export default function LibraryPage() {
                 <SlidersHorizontalIcon className="size-4" />
               </button>
 
-              <button
-                type="button"
-                className="group relative flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-xl bg-linear-76 from-cyan-400 to-emerald-300 px-6 text-sm font-bold tracking-wide text-neutral-900 shadow-[0px_0px_20px_0px_rgba(0,245,255,0.45)] outline outline-1 outline-offset-[-1px] outline-white/30 transition-transform hover:scale-[1.02]"
-              >
-                <UploadCloudIcon className="size-4" strokeWidth={2.5} />
-                  Upload
-                <span className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
-              </button>
+              <UploadButton />
             </div>
           </>
         }
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {DOCUMENTS.map((doc, index) => (
+        {documents && documents.map((doc) => (
           <LibraryCard 
-            key={index}
+            key={doc.id}
             card={doc}
           />
         ))}

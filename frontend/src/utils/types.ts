@@ -1,3 +1,6 @@
+// API
+export const API_BASE = "http://localhost:8000/api";
+
 // Flashcards
 export type FlashcardFeedback = "instant" | "quick" | "slow" | "struggled";
 
@@ -35,7 +38,7 @@ export interface ILibraryCard {
   uploadDate: Date;
   status: string;
   nrPages: number;
-}
+};
 
 // Recent answers
 export interface IRecentAnswer {
