@@ -25,7 +25,7 @@ function formatAnswerDate(date: Date): string {
   }
 }
 
-export default function RecentAnswer({answer}: RecentAnswerProps) {
+export default function RecentAnswer({ answer }: RecentAnswerProps) {
   const styles: {tag: string, stripe: string} = DIFFICULTY_STYLES[answer.difficulty] ?? DIFFICULTY_STYLES.easy; 
 
   return (

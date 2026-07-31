@@ -42,7 +42,7 @@ export interface LibraryCardProps {
   onDeleteCard: (documentID: string) => Promise<void>;
 }
 
-export default function LibraryCard({card, onDeleteCard}: LibraryCardProps) {
+export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);

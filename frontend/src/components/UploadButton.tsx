@@ -7,7 +7,7 @@ interface UploadButtonProps {
   onUpload: (document: ILibraryCard) => void;
 }
 
-export default function UploadButton({onUpload} : UploadButtonProps) {
+export default function UploadButton({ onUpload } : UploadButtonProps) {
   const [status, setStatus] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const hiddenInput = useRef<HTMLInputElement>(null);

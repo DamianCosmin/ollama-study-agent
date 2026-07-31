@@ -16,7 +16,7 @@ export interface DeckCardProps {
   onDelete?: (id: string) => void;
 }
 
-export default function DeckCard({deck, onStart, onRename, onDelete}: DeckCardProps) {
+export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const categoryAssets: {icon: LucideIcon; name: string; color: string} = CATEGORIES[deck.category] ?? CATEGORIES.general;
