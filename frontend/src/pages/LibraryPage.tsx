@@ -4,6 +4,7 @@ import LibraryCard from "../components/LibraryCard.tsx";
 import UploadButton from "../components/UploadButton.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
 import { API_BASE, WS_BASE, ILibraryCard } from "../utils/types.ts";
+import { convertToILibraryCard } from "../utils/functions.ts";
 
 export default function LibraryPage() {
   const [documents, setDocuments] = useState<ILibraryCard[] | null>([]);
@@ -21,15 +22,7 @@ export default function LibraryPage() {
         const rawData = data.documents as Array<Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}>;
         
         // Converts string date from database into Date object to match ILibraryCard definition
-        const docs: ILibraryCard[] = rawData.map((doc) => {
-          const isoString: string = doc.uploadDate ? doc.uploadDate.replace(" ", "T") + "Z" : "";
-          const date = new Date(isoString);
-
-          return {
-            ...doc,
-            uploadDate: date,
-          }
-        });
+        const docs: ILibraryCard[] = rawData.map((doc) => convertToILibraryCard(doc));
 
         setDocuments(docs);
       } else {
@@ -40,13 +33,7 @@ export default function LibraryPage() {
     }
   };
 
-  const handleUpload = (rawDocument: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) => {
-    const isoString: string = rawDocument.uploadDate ? rawDocument.uploadDate.replace(" ", "T") + "Z" : "";
-    const document: ILibraryCard = {
-      ...rawDocument,
-      uploadDate: new Date(isoString),
-    }
-
+  const handleUpload = (document: ILibraryCard) => {
     setDocuments((prev) => prev ? [document, ...prev] : [document]);
   }
 

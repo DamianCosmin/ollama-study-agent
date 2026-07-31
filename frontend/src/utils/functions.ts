@@ -1,3 +1,5 @@
+import { ILibraryCard } from "./types";
+
 export function formatLastAccessedDate(date: Date): string {
   const now = new Date();
 
@@ -13,4 +15,18 @@ export function formatLastAccessedDate(date: Date): string {
   } else {
     return `${diffDays}d ago`;
   }
+}
+
+export function convertToILibraryCard(rawDocument: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) : ILibraryCard {
+  if (!rawDocument) {
+    throw new Error("Error: Convertion to ILibraryCard failed!"); 
+  }
+
+  const isoString: string = rawDocument.uploadDate ? rawDocument.uploadDate.replace(" ", "T") + "Z" : "";
+  const newDocument: ILibraryCard = {
+    ...rawDocument,
+    uploadDate: new Date(isoString),
+  }
+
+  return newDocument;
 }

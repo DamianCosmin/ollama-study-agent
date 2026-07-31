@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, ChangeEvent } from "react";
 import { UploadCloudIcon, XIcon } from "lucide-react";
 import { API_BASE, ILibraryCard } from "../utils/types.ts";
+import { convertToILibraryCard } from "../utils/functions.ts";
 
 interface UploadButtonProps {
-  onUpload: (document: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) => void;
+  onUpload: (document: ILibraryCard) => void;
 }
 
 export default function UploadButton({onUpload} : UploadButtonProps) {
@@ -69,7 +70,7 @@ export default function UploadButton({onUpload} : UploadButtonProps) {
       const data = await response.json();
 
       if (response.ok) {
-        const document: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string} = data.document;
+        const document: ILibraryCard = convertToILibraryCard(data.document);
         setStatus(`Success! Uploaded ${document.title}`);
         onUpload(document);
       } else {
