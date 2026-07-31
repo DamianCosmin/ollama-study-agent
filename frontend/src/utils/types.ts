@@ -1,5 +1,6 @@
 // API
 export const API_BASE = "http://localhost:8000/api";
+export const WS_BASE = "ws://localhost:8000/ws";
 
 // Flashcards
 export type FlashcardFeedback = "instant" | "quick" | "slow" | "struggled";

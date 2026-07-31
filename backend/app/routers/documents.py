@@ -1,11 +1,13 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends, BackgroundTasks, WebSocket, WebSocketDisconnect
 from sqlmodel import Session, select
 import os
 import shutil
 import uuid
+import asyncio
 
 from app.models import Document
-from app.db import get_session
+from app.db import get_session, engine
+from app.websockets import ws_manager
 
 router = APIRouter()
 
@@ -20,7 +22,11 @@ ALLOWED_TYPES = {
 }
 
 @router.post("/api/documents")
-async def upload_document(file: UploadFile = File(...), session: Session = Depends(get_session)):
+async def upload_document(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session)
+):
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -64,6 +70,8 @@ async def upload_document(file: UploadFile = File(...), session: Session = Depen
     session.commit()
     session.refresh(document)
 
+    background_tasks.add_task(vectorize_document, document.id)
+
     return {
         "message": "Upload successful!",
         "document": document
@@ -75,3 +83,54 @@ async def get_documents(session: Session = Depends(get_session)):
     return {
         "documents": session.exec(statement).all()
     }
+
+@router.get("/api/documents/{document_id}")
+async def get_document(document_id: uuid.UUID, session: Session = Depends(get_session)):
+    document = session.get(Document, document_id)
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found!"
+        )
+    return {
+        "document": document
+    }
+
+@router.websocket("/ws/documents")
+async def documents_websocket(websocket: WebSocket):
+    await ws_manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+
+async def vectorize_document(document_id: uuid.UUID):
+    with Session(engine) as session:
+        document = session.get(Document, document_id)
+        if not document:
+            return
+
+        try:
+            # TO-DO: Change with actual vectorization logic
+            await asyncio.sleep(3)
+
+            document.status = "success"
+            document.nr_pages = 100
+            session.add(document)
+            session.commit()
+        except Exception as e:
+            print(f"Vectorization failed for {document_id}: {e}")
+            document.status = "error"
+            document.nr_pages = 0
+            session.add(document)
+            session.commit()
+
+        try:
+            await ws_manager.broadcast({
+                "documentId": str(document_id),
+                "status": document.status,
+                "pages": str(document.nr_pages)
+            })
+        except Exception as e:
+            print(f"Broadcast failed for {document_id}: {e}")

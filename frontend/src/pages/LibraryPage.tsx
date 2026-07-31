@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SearchIcon, SlidersHorizontalIcon } from "lucide-react";
 import LibraryCard from "../components/LibraryCard.tsx";
 import UploadButton from "../components/UploadButton.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
-import { API_BASE, ILibraryCard } from "../utils/types.ts";
+import { API_BASE, WS_BASE, ILibraryCard } from "../utils/types.ts";
 
 export default function LibraryPage() {
   const [documents, setDocuments] = useState<ILibraryCard[] | null>([]);
+  const socketRef = useRef<WebSocket | null>(null);
 
   const fetchDocuments = async () => {
     try {
@@ -28,7 +29,8 @@ export default function LibraryPage() {
             ...doc,
             uploadDate: date,
           }
-        })
+        });
+
         setDocuments(docs);
       } else {
         console.error("Error: Failed to retrieve documents!", data);
@@ -36,10 +38,47 @@ export default function LibraryPage() {
     } catch (err) {
       console.error("Error: Could not connect to backend!", err);
     }
+  };
+
+  // Functions used for Websockets connections
+  const handleUpload = (rawDocument: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) => {
+    const isoString: string = rawDocument.uploadDate ? rawDocument.uploadDate.replace(" ", "T") + "Z" : "";
+    const document: ILibraryCard = {
+      ...rawDocument,
+      uploadDate: new Date(isoString),
+    }
+
+    setDocuments((prev) => prev ? [document, ...prev] : [document]);
+  }
+
+  const handleStatusUpdate = (documentId: string, status: string, pages: string) => {
+    const nr_pages: number = Number.parseInt(pages);
+
+    setDocuments((prev) => 
+      prev ? prev.map((doc) => doc.id === documentId ? {...doc, status, nr_pages} : doc) : prev
+    );
   }
 
   useEffect(() => {
     fetchDocuments()
+  }, []);
+
+  useEffect(() => {
+    const socket = new WebSocket(`${WS_BASE}/documents`);
+    socketRef.current = socket;
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      handleStatusUpdate(data.documentId, data.status, data.pages);
+    }
+
+    socket.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    }
+
+    return () => {
+      socket.close()
+    };
   }, []);
 
   return (
@@ -67,7 +106,9 @@ export default function LibraryPage() {
                 <SlidersHorizontalIcon className="size-4" />
               </button>
 
-              <UploadButton />
+              <UploadButton
+                onUpload={handleUpload} 
+              />
             </div>
           </>
         }

@@ -2,7 +2,11 @@ import { useState, useRef, useEffect, ChangeEvent } from "react";
 import { UploadCloudIcon, XIcon } from "lucide-react";
 import { API_BASE, ILibraryCard } from "../utils/types.ts";
 
-export default function UploadButton() {
+interface UploadButtonProps {
+  onUpload: (document: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) => void;
+}
+
+export default function UploadButton({onUpload} : UploadButtonProps) {
   const [status, setStatus] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const hiddenInput = useRef<HTMLInputElement>(null);
@@ -64,10 +68,10 @@ export default function UploadButton() {
 
       const data = await response.json();
 
-      // TO-DO: Update cards using Websockets instead of displaying the pop-up
       if (response.ok) {
-        const document: ILibraryCard = data.document;
+        const document: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string} = data.document;
         setStatus(`Success! Uploaded ${document.title}`);
+        onUpload(document);
       } else {
         setStatus("Error: Upload failed!");
       }
