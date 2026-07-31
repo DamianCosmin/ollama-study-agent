@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
-import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, XIcon, type LucideIcon } from "lucide-react";
+import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon } from "lucide-react";
 
-import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
+import { ILibraryCard, LibraryCardTag, IPopupStatus } from "../utils/types.ts";
 import LibraryCardModal from "../components/LibraryCardModal.tsx";
+import StatusPopup from "./StatusPopup.tsx";
 
 const statusAttributes: Record<string, {tag: LibraryCardTag, icon: string; ring: string; dot: string}> = {
   success: {
@@ -45,7 +46,7 @@ export interface LibraryCardProps {
 export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [status, setStatus] = useState<IPopupStatus | null>(null);
 
   const Icon: LucideIcon = card.status === "error" ? FileWarningIcon : FileTextIcon;
   const styles: {tag: LibraryCardTag, icon: string; ring: string; dot: string} = statusAttributes[card.status] ?? statusAttributes.error;
@@ -58,19 +59,16 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
       await onDeleteCard(card.id);
     } catch (err) {
       console.error(`Card deletion failed for ${card.title}`, err);
-      setDeleteError("Error: Something went wrong. Please try again!");
+      setStatus({text: "Something went wrong. Please try again!", type: "error"});
     } finally {
       setIsModalOpen(false);
       setIsDeleting(false);
     }
   };
 
-  useEffect(() => {
-    if (deleteError) {
-      const timer = setTimeout(() => setDeleteError(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [deleteError]);
+  const clearStatus = () => {
+    setStatus(null);
+  }
 
   return (
     <>
@@ -133,27 +131,10 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
           )}
       </div>
 
-      {deleteError && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-white/25 px-5 py-2.5 backdrop-blur-[10px] outline outline-1 outline-offset-[-1px] outline-white/10 shadow-[0px_8px_24px_0px_rgba(0,220,229,0.10)] animate-in fade-in slide-in-from-bottom-5">
-          <div 
-            className={`h-2.5 w-2.5 rounded-full ${deleteError.startsWith("Error") 
-              ? "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.6)]" 
-              : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
-            }`} 
-          />
-
-          <p className="text-sm font-bold tracking-wide text-zinc-200">
-            {deleteError}
-          </p>
-
-          <button 
-            onClick={() => setDeleteError(null)} 
-            className="ml-1 rounded-full p-1.5 text-neutral-300 transition-colors hover:bg-white/10 hover:text-neutral-100"
-          >
-            <XIcon className="size-4" />
-          </button>
-        </div>
-      )}
+      <StatusPopup 
+        status={status}
+        onClearStatus={clearStatus}
+      />
     </>
   );
 }

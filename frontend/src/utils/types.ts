@@ -49,3 +49,9 @@ export interface IRecentAnswer {
   answerDate: Date;
   difficulty: string;
 };
+
+// Pop-up
+export interface IPopupStatus {
+  text: string;
+  type: "success" | "error";
+}

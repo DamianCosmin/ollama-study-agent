@@ -22,7 +22,9 @@ export default function LibraryPage() {
         const rawData = data.documents as Array<Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}>;
         
         // Converts string date from database into Date object to match ILibraryCard definition
-        const docs: ILibraryCard[] = rawData.map((doc) => convertToILibraryCard(doc));
+        const docs: ILibraryCard[] = rawData
+          .map((doc) => convertToILibraryCard(doc))
+          .sort((docA, docB) => docB.uploadDate.getTime() - docA.uploadDate.getTime());
 
         setDocuments(docs);
       } else {

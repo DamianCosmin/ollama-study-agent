@@ -1,14 +1,16 @@
-import { useState, useRef, useEffect, ChangeEvent } from "react";
-import { UploadCloudIcon, XIcon } from "lucide-react";
-import { API_BASE, ILibraryCard } from "../utils/types.ts";
+import { useState, useRef, ChangeEvent } from "react";
+import { UploadCloudIcon } from "lucide-react";
+
+import { API_BASE, ILibraryCard, IPopupStatus } from "../utils/types.ts";
 import { convertToILibraryCard } from "../utils/functions.ts";
+import StatusPopup from "./StatusPopup.tsx";
 
 interface UploadButtonProps {
   onUpload: (document: ILibraryCard) => void;
 }
 
-export default function UploadButton({ onUpload } : UploadButtonProps) {
-  const [status, setStatus] = useState("");
+export default function UploadButton({ onUpload }: UploadButtonProps) {
+  const [status, setStatus] = useState<IPopupStatus | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const hiddenInput = useRef<HTMLInputElement>(null);
 
@@ -19,19 +21,12 @@ export default function UploadButton({ onUpload } : UploadButtonProps) {
     "application/vnd.openxmlformats-officedocument.presentationml.presentation" // .pptx
   ];
 
-  useEffect(() => {
-    if (status) {
-      const timer = setTimeout(() => setStatus(""), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [status]);
-
   const handleClick = () => {
     hiddenInput.current?.click();
   }
 
   const clearStatus = () => {
-    setStatus("");
+    setStatus(null);
   }
 
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -47,12 +42,12 @@ export default function UploadButton({ onUpload } : UploadButtonProps) {
     }
 
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setStatus("Error: File exceeds 20 MB limit!");
+      setStatus({text: "Error: File exceeds 20 MB limit!", type: "error"});
       return;
     }
 
     if (!ALLOWED_TYPES.includes(selectedFile.type)) {
-      setStatus("Error: Only PDF, DOCX, and PPTX are allowed!");
+      setStatus({text: "Error: Only PDF, DOCX, and PPTX are allowed!", type: "error"});
       return;
     }
 
@@ -71,13 +66,13 @@ export default function UploadButton({ onUpload } : UploadButtonProps) {
 
       if (response.ok) {
         const document: ILibraryCard = convertToILibraryCard(data.document);
-        setStatus(`Success! Uploaded ${document.title}`);
+        setStatus({text: `Success! Uploaded ${document.title}`, type: "success"});
         onUpload(document);
       } else {
-        setStatus("Error: Upload failed!");
+        setStatus({text: "Error: Upload failed!", type: "error"});
       }
     } catch (err) {
-      setStatus("Error: Could not connect to the backend!");
+      setStatus({text: "Error: Could not connect to the backend!", type: "error"});
     } finally {
       setIsUploading(false);
     }
@@ -103,27 +98,10 @@ export default function UploadButton({ onUpload } : UploadButtonProps) {
         <span className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
       </button>
 
-      {status && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-white/25 px-5 py-2.5 backdrop-blur-[10px] outline outline-1 outline-offset-[-1px] outline-white/10 shadow-[0px_8px_24px_0px_rgba(0,220,229,0.10)] animate-in fade-in slide-in-from-bottom-5">
-          <div 
-            className={`h-2.5 w-2.5 rounded-full ${status.startsWith("Error") 
-              ? "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.6)]" 
-              : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
-            }`} 
-          />
-
-          <p className="text-sm font-bold tracking-wide text-zinc-200">
-            {status}
-          </p>
-
-          <button 
-            onClick={clearStatus} 
-            className="ml-1 rounded-full p-1.5 text-neutral-300 transition-colors hover:bg-white/10 hover:text-neutral-100"
-          >
-            <XIcon className="size-4" />
-          </button>
-        </div>
-      )}
+      <StatusPopup 
+        status={status}
+        onClearStatus={clearStatus}
+      />
     </>
   );
 }
