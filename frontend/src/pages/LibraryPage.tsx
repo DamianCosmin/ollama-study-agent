@@ -40,7 +40,6 @@ export default function LibraryPage() {
     }
   };
 
-  // Functions used for Websockets connections
   const handleUpload = (rawDocument: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) => {
     const isoString: string = rawDocument.uploadDate ? rawDocument.uploadDate.replace(" ", "T") + "Z" : "";
     const document: ILibraryCard = {
@@ -51,11 +50,28 @@ export default function LibraryPage() {
     setDocuments((prev) => prev ? [document, ...prev] : [document]);
   }
 
+  const handleDelete = async (documentID: string) => {
+    const response = await fetch(`${API_BASE}/documents/${documentID}`, {
+      method: "DELETE"
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      const deletedID: string = data.documentId;
+      setDocuments((prev) => prev ? prev.filter((doc) => doc.id !== deletedID) : []);
+    } else {
+      console.error("Error: Failed to delete document!", data);
+      throw new Error(data.detail ?? "Failed to delete document!");
+    }
+  }
+
+  // Function used for Websockets connections
   const handleStatusUpdate = (documentId: string, status: string, pages: string) => {
-    const nr_pages: number = Number.parseInt(pages);
+    const nrPages: number = Number.parseInt(pages);
 
     setDocuments((prev) => 
-      prev ? prev.map((doc) => doc.id === documentId ? {...doc, status, nr_pages} : doc) : prev
+      prev ? prev.map((doc) => doc.id === documentId ? {...doc, status, nrPages} : doc) : prev
     );
   }
 
@@ -119,6 +135,7 @@ export default function LibraryPage() {
           <LibraryCard 
             key={doc.id}
             card={doc}
+            onDeleteCard={handleDelete}
           />
         ))}
       </div>

@@ -6,9 +6,10 @@ interface DeleteConfirmModalProps {
   title: string;
   onCancel: () => void;
   onConfirm: () => void;
+  isDeleting: boolean;
 }
 
-export default function DeleteConfirmModal({ title, onCancel, onConfirm }: DeleteConfirmModalProps) {
+export default function DeleteConfirmModal({ title, onCancel, onConfirm, isDeleting }: DeleteConfirmModalProps) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -63,16 +64,18 @@ export default function DeleteConfirmModal({ title, onCancel, onConfirm }: Delet
         <div className="flex items-center justify-end gap-2 pt-1">
           <button
             onClick={onCancel}
+            disabled={isDeleting}
             className="rounded-md px-4 py-2 text-sm text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 transition-colors hover:bg-white/10"
           >
             Cancel
           </button>
-          
+
           <button
             onClick={onConfirm}
+            disabled={isDeleting}
             className="rounded-md bg-red-300/10 px-4 py-2 text-sm text-red-300 outline outline-1 outline-offset-[-1px] outline-red-300/30 transition-colors hover:bg-red-300/20"
           >
-            Delete
+            {isDeleting ? "Deleting..." : "Delete"}
           </button>
         </div>
       </motion.div>

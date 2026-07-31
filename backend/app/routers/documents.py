@@ -80,6 +80,7 @@ async def upload_document(
 @router.get("/api/documents")
 async def get_documents(session: Session = Depends(get_session)):
     statement = select(Document)
+
     return {
         "documents": session.exec(statement).all()
     }
@@ -87,18 +88,49 @@ async def get_documents(session: Session = Depends(get_session)):
 @router.get("/api/documents/{document_id}")
 async def get_document(document_id: uuid.UUID, session: Session = Depends(get_session)):
     document = session.get(Document, document_id)
+
     if not document:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document not found!"
         )
+    
     return {
         "document": document
+    }
+
+@router.delete("/api/documents/{document_id}")
+async def delete_document(document_id: uuid.UUID, session: Session = Depends(get_session)):
+    document = session.get(Document, document_id)
+
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found!"
+        )
+
+    # Delete files
+    storage_filename = f"{document.id}.{document.file_type}"
+    file_path = os.path.join(UPLOAD_DIRECTORY, storage_filename)
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    # TO-DO: Delete Chroma DB data
+    # TO_DO: Delete related decks
+    # TO-DO: Delete related flashcards
+    
+    session.delete(document)
+    session.commit()
+
+    return {
+        "documentId": document_id
     }
 
 @router.websocket("/ws/documents")
 async def documents_websocket(websocket: WebSocket):
     await ws_manager.connect(websocket)
+
     try:
         while True:
             await websocket.receive_text()
@@ -108,12 +140,13 @@ async def documents_websocket(websocket: WebSocket):
 async def vectorize_document(document_id: uuid.UUID):
     with Session(engine) as session:
         document = session.get(Document, document_id)
+
         if not document:
             return
 
         try:
             # TO-DO: Change with actual vectorization logic
-            await asyncio.sleep(3)
+            await asyncio.sleep(10)
 
             document.status = "success"
             document.nr_pages = 100

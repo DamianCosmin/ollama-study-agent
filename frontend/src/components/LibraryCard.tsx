@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
-import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon } from "lucide-react";
+import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, XIcon, type LucideIcon } from "lucide-react";
 
 import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
 import LibraryCardModal from "../components/LibraryCardModal.tsx";
@@ -39,81 +39,121 @@ function formatDate(date: Date): string {
 
 export interface LibraryCardProps {
   card: ILibraryCard;
-  onDelete?: (id: string) => void;
+  onDeleteCard: (documentID: string) => Promise<void>;
 }
 
-export default function LibraryCard({ card, onDelete }: LibraryCardProps) {
+export default function LibraryCard({card, onDeleteCard}: LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const Icon: LucideIcon = card.status === "error" ? FileWarningIcon : FileTextIcon;
-  const Tag: LibraryCardTag = statusAttributes[card.status].tag || "Failed to parse";
   const styles: {tag: LibraryCardTag, icon: string; ring: string; dot: string} = statusAttributes[card.status] ?? statusAttributes.error;
+  const Tag: LibraryCardTag = styles.tag;
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     setIsDeleting(true);
-    setIsConfirmOpen(false);
-    onDelete?.(card.id);
-    // TO-DO: Integrate with backend APIs
+    
+    try {
+      await onDeleteCard(card.id);
+    } catch (err) {
+      console.error(`Card deletion failed for ${card.title}`, err);
+      setDeleteError("Error: Something went wrong. Please try again!");
+    } finally {
+      setIsModalOpen(false);
+      setIsDeleting(false);
+    }
   };
 
+  useEffect(() => {
+    if (deleteError) {
+      const timer = setTimeout(() => setDeleteError(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [deleteError]);
+
   return (
-    <div className="flex min-h-48 flex-col justify-between rounded-xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
-      <div className="flex items-start justify-between pb-6">
-        <div className={`flex size-12 items-center justify-center rounded-lg outline outline-1 outline-offset-[-1px] ${styles.icon}`}>
-          <Icon className="size-5" />
+    <>
+      <div className="flex min-h-48 flex-col justify-between rounded-xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
+        <div className="flex items-start justify-between pb-6">
+          <div className={`flex size-12 items-center justify-center rounded-lg outline outline-1 outline-offset-[-1px] ${styles.icon}`}>
+            <Icon className="size-5" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            disabled={isDeleting || card.status === "processing"}
+            className="rounded-md p-1 text-neutral-300 transition-colors hover:bg-red-400/10 hover:text-red-300 disabled:hover:bg-transparent disabled:hover:text-neutral-300 disabled:opacity-50"
+          >
+            <Trash2Icon className="size-4" />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsConfirmOpen(true)}
-          disabled={isDeleting}
-          className="rounded-md p-1 text-neutral-300 transition-colors hover:bg-red-400/10 hover:text-red-300"
-        >
-          <Trash2Icon className="size-4" />
-        </button>
-      </div>
+        <div className="flex flex-col gap-1 pb-6">
+          <h3 className="text-base font-semibold leading-6 text-zinc-200">{card.title}</h3>
+          <p className="text-sm leading-5 text-neutral-300">{formatDate(card.uploadDate)}</p>
+        </div>
 
-      <div className="flex flex-col gap-1 pb-6">
-        <h3 className="text-base font-semibold leading-6 text-zinc-200">{card.title}</h3>
-        <p className="text-sm leading-5 text-neutral-300">{formatDate(card.uploadDate)}</p>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-white/5 pt-4">
-        {card.status === "error" ? (
-          <span className="rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-red-300 outline outline-1 outline-offset-[-1px] outline-red-300/30">
-            {Tag}
-          </span>
-        ) : (
-          <>
-            <span
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide outline outline-1 outline-offset-[-1px] ${styles.ring}`}
-            >
-              <span className={`size-1.5 rounded-full ${styles.dot}`} />
+        <div className="flex items-center justify-between border-t border-white/5 pt-4">
+          {card.status === "error" ? (
+            <span className="rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-red-300 outline outline-1 outline-offset-[-1px] outline-red-300/30">
               {Tag}
             </span>
+          ) : (
+            <>
+              <span
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide outline outline-1 outline-offset-[-1px] ${styles.ring}`}
+              >
+                <span className={`size-1.5 rounded-full ${styles.dot}`} />
+                {Tag}
+              </span>
 
-            <span className="flex items-center gap-1.5 rounded-full bg-neutral-800/50 px-3 py-1 text-xs font-semibold tracking-wide text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/5">
-              <LayersIcon className="size-3" />
-              {card.nrPages ?? "--"}
-            </span>
-          </>
-        )}
+              <span className="flex items-center gap-1.5 rounded-full bg-neutral-800/50 px-3 py-1 text-xs font-semibold tracking-wide text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/5">
+                <LayersIcon className="size-3" />
+                {card.nrPages ?? "--"}
+              </span>
+            </>
+          )}
+        </div>
+
+        {typeof document !== "undefined" &&
+          createPortal(
+            <AnimatePresence>
+              {isModalOpen && (
+                <LibraryCardModal
+                  title={card.title}
+                  onCancel={() => setIsModalOpen(false)}
+                  onConfirm={handleConfirmDelete}
+                  isDeleting={isDeleting}
+                />
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
       </div>
 
-      {typeof document !== "undefined" &&
-        createPortal(
-          <AnimatePresence>
-            {isConfirmOpen && (
-              <LibraryCardModal
-                title={card.title}
-                onCancel={() => setIsConfirmOpen(false)}
-                onConfirm={handleConfirmDelete}
-              />
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
-    </div>
+      {deleteError && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-white/25 px-5 py-2.5 backdrop-blur-[10px] outline outline-1 outline-offset-[-1px] outline-white/10 shadow-[0px_8px_24px_0px_rgba(0,220,229,0.10)] animate-in fade-in slide-in-from-bottom-5">
+          <div 
+            className={`h-2.5 w-2.5 rounded-full ${deleteError.startsWith("Error") 
+              ? "bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.6)]" 
+              : "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]"
+            }`} 
+          />
+
+          <p className="text-sm font-bold tracking-wide text-zinc-200">
+            {deleteError}
+          </p>
+
+          <button 
+            onClick={() => setDeleteError(null)} 
+            className="ml-1 rounded-full p-1.5 text-neutral-300 transition-colors hover:bg-white/10 hover:text-neutral-100"
+          >
+            <XIcon className="size-4" />
+          </button>
+        </div>
+      )}
+    </>
   );
 }
