@@ -1,0 +1,1 @@
+from app.services.vectorization import vectorize_document

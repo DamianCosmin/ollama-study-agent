@@ -3,11 +3,11 @@ from sqlmodel import Session, select
 import os
 import shutil
 import uuid
-import asyncio
 
 from app.models import Document
-from app.db import get_session, engine
+from app.db import get_session
 from app.websockets import ws_manager
+from app.services import vectorize_document
 
 router = APIRouter()
 
@@ -70,7 +70,7 @@ async def upload_document(
     session.commit()
     session.refresh(document)
 
-    background_tasks.add_task(vectorize_document, document.id)
+    background_tasks.add_task(vectorize_document, document.id, file_path)
 
     return {
         "message": "Upload successful!",
@@ -136,34 +136,3 @@ async def documents_websocket(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
-
-async def vectorize_document(document_id: uuid.UUID):
-    with Session(engine) as session:
-        document = session.get(Document, document_id)
-
-        if not document:
-            return
-
-        try:
-            # TO-DO: Change with actual vectorization logic
-            await asyncio.sleep(10)
-
-            document.status = "success"
-            document.nr_pages = 100
-            session.add(document)
-            session.commit()
-        except Exception as e:
-            print(f"Vectorization failed for {document_id}: {e}")
-            document.status = "error"
-            document.nr_pages = 0
-            session.add(document)
-            session.commit()
-
-        try:
-            await ws_manager.broadcast({
-                "documentId": str(document_id),
-                "status": document.status,
-                "pages": str(document.nr_pages)
-            })
-        except Exception as e:
-            print(f"Broadcast failed for {document_id}: {e}")
