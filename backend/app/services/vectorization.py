@@ -7,6 +7,7 @@ from app.websockets import ws_manager
 from app.db import engine
 from app.services.extraction import extract_text
 from app.services.chunking import chunk_text, add_chunks_metadata
+from app.services.embedding import create_embeddings
 
 def process_pipeline(document_id: str, file_type: str, file_path: str):
     # 1: Text extraction
@@ -17,6 +18,8 @@ def process_pipeline(document_id: str, file_type: str, file_path: str):
     chunk_records = add_chunks_metadata(document_id, chunks)
 
     # 3: Embeddings
+    embedded_chunks = create_embeddings(chunk_records)
+
     # 4: Vector store
 
     return nr_pages

@@ -9,7 +9,7 @@ def chunk_text(extracted_text: str):
 
     return splitter.split_text(extracted_text)
 
-def add_chunks_metadata(document_id: str, chunks: list[str]):
+def add_chunks_metadata(document_id: str, chunks: list[str]) -> list[dict]:
     chunk_records = []
 
     for i, chunk in enumerate(chunks):
