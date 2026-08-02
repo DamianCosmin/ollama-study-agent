@@ -6,12 +6,16 @@ from app.models import Document
 from app.websockets import ws_manager
 from app.db import engine
 from app.services.extraction import extract_text
+from app.services.chunking import chunk_text, add_chunks_metadata
 
-def process_pipeline(file_type: str, file_path: str):
+def process_pipeline(document_id: str, file_type: str, file_path: str):
     # 1: Text extraction
     extracted_text, nr_pages = extract_text(file_type, file_path)
 
     # 2: Chunking
+    chunks = chunk_text(extracted_text)
+    chunk_records = add_chunks_metadata(document_id, chunks)
+
     # 3: Embeddings
     # 4: Vector store
 
@@ -32,7 +36,7 @@ async def vectorize_document(document_id: uuid.UUID, file_path: str):
 
         # Runs document processing in a background thread to avoid blocking the main event loop
         nr_pages = await asyncio.to_thread(
-            process_pipeline, file_type, file_path
+            process_pipeline, str(document_id), file_type, file_path
         )
     
         final_status = "success"
