@@ -8,6 +8,7 @@ from app.db import engine
 from app.services.extraction import extract_text
 from app.services.chunking import chunk_text, add_chunks_metadata
 from app.services.embedding import create_embeddings
+from app.services.chromadb_saving import save_chunks
 
 def process_pipeline(document_id: str, file_type: str, file_path: str):
     # 1: Text extraction
@@ -20,7 +21,8 @@ def process_pipeline(document_id: str, file_type: str, file_path: str):
     # 3: Embeddings
     embedded_chunks = create_embeddings(chunk_records)
 
-    # 4: Vector store
+    # 4: ChromaDB store
+    save_chunks(embedded_chunks)
 
     return nr_pages
 
@@ -34,9 +36,6 @@ async def vectorize_document(document_id: uuid.UUID, file_path: str):
         file_type = document.file_type
 
     try:
-        # TO-DO: Change with actual vectorization logic
-        await asyncio.sleep(5)
-
         # Runs document processing in a background thread to avoid blocking the main event loop
         nr_pages = await asyncio.to_thread(
             process_pipeline, str(document_id), file_type, file_path
