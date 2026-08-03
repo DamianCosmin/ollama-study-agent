@@ -9,7 +9,7 @@ from app.services.extraction import extract_text
 from app.services.categorization import categorize_document
 from app.services.chunking import chunk_text, add_chunks_metadata
 from app.services.embedding import create_embeddings
-from app.services.chromadb_saving import save_chunks
+from app.services.chromadb_storage import save_chunks
 
 def process_pipeline(document_id: str, file_type: str, file_path: str):
     # 1: Text extraction & categorization

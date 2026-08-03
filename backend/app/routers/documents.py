@@ -8,6 +8,7 @@ from app.models import Document
 from app.db import get_session
 from app.websockets import ws_manager
 from app.services import vectorize_document
+from app.services.chromadb_storage import delete_data
 
 router = APIRouter()
 
@@ -116,7 +117,12 @@ async def delete_document(document_id: uuid.UUID, session: Session = Depends(get
     if os.path.exists(file_path):
         os.remove(file_path)
 
-    # TO-DO: Delete Chroma DB data
+    # Delete Chroma DB data
+    try:
+        delete_data(str(document_id))
+    except Exception as e:
+        print(f"ChromaDB cleanup failed for {str(document_id)}: {str(e)}")
+
     # TO_DO: Delete related decks
     # TO-DO: Delete related flashcards
     

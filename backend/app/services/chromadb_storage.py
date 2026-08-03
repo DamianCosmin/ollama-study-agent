@@ -10,3 +10,6 @@ def save_chunks(embedded_chunks: list[dict]):
         documents=[chunk["text"] for chunk in embedded_chunks],
         metadatas=[chunk["metadata"] for chunk in embedded_chunks]
     )
+
+def delete_data(document_id: str):
+    collection.delete(where={"document_id": document_id})
