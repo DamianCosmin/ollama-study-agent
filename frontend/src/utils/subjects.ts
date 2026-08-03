@@ -9,6 +9,7 @@ import {
   ScaleIcon,
   TrendingUpIcon,
   PaletteIcon,
+  DnaIcon,
   HeartPulseIcon,
   WrenchIcon,
   SproutIcon,
@@ -27,9 +28,14 @@ export const CATEGORIES: Record<string, {icon: LucideIcon; name: string; color: 
     name: "Sciences",
     color: "text-cyan-300",
   },
-  "medicine": {
+  "biology": {
+    icon: DnaIcon,
+    name: "Biology",
+    color: "text-rose-400",
+  },
+  "anatomy": {
     icon: HeartPulseIcon,
-    name: "Medicine & Anatomy",
+    name: "Anatomy",
     color: "text-rose-400",
   },
   "computer": {

@@ -182,6 +182,7 @@ export default function FlashcardsPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {visibleDecks.map((deck) => (
               <DeckCard 
+                key={deck.id}
                 deck={deck}
                 onStart={() => {}}
                 onRename={() => {}}
@@ -197,7 +198,7 @@ export default function FlashcardsPage() {
             <span className="text-xs font-semibold tracking-wide text-neutral-300">Recently Answered</span>
             <div className="flex flex-col gap-3">
               {RECENTLY_ANSWERED.map((ans) => (
-                <RecentAnswer answer={ans} />
+                <RecentAnswer key={ans.id} answer={ans} />
               ))}
             </div>
           </div>
