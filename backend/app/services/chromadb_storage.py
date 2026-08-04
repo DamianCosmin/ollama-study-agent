@@ -13,3 +13,22 @@ def save_chunks(embedded_chunks: list[dict]):
 
 def delete_data(document_id: str):
     collection.delete(where={"document_id": document_id})
+
+# Testing purposes only
+def get_all_data():
+    result = collection.get(include=["documents", "metadatas", "embeddings"])
+
+    data = []
+    for id, metadata, text, embedding in zip(result["ids"], result["metadatas"], result["documents"], result["embeddings"]):
+        record = {
+            "id": id,
+            "metadata": metadata,
+            "text": text,
+            "embedding_length": len(embedding) if embedding is not None else 0
+        }
+        data.append(record)
+
+    return data
+
+def delete_all_data():
+    client.delete_collection(name="study-agent-documents")

@@ -8,7 +8,7 @@ from app.models import Document
 from app.db import get_session
 from app.websockets import ws_manager
 from app.services import vectorize_document
-from app.services.chromadb_storage import delete_data
+from app.services.chromadb_storage import delete_data, get_all_data, delete_all_data
 
 router = APIRouter()
 
@@ -142,3 +142,16 @@ async def documents_websocket(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
+
+# Testing purposes only
+@router.get("/api/debug/chromadb")
+async def debug_chroma():
+    return get_all_data()
+
+@router.delete("/api/debug/delete-chromadb")
+async def delete_chroma():
+    delete_all_data()
+    
+    return {
+        "Message": "ChromaDB data deleted successfully!"
+    }
