@@ -4,6 +4,7 @@ import { SearchIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
 import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer from "../components/RecentAnswer.tsx";
 import DeckCard from "../components/DeckCard.tsx";
+import CreateDeckModal from "../components/CreateDeckModal.tsx";
 import { IRecentAnswer, IDeckCard } from "../utils/types.ts";
 
 const DECKS: IDeckCard[] = [
@@ -106,6 +107,7 @@ const RECENTLY_ANSWERED: IRecentAnswer[] = [
 const DAILY_TARGET = { completed: 25, target: 40 };
 
 export default function FlashcardsPage() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
   const visibleDecks: IDeckCard[] = filter === "due" ? DECKS.filter((d) => d.lastToAnswer <= d.totalCards) : DECKS;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
@@ -136,12 +138,18 @@ export default function FlashcardsPage() {
 
             <button
               type="button"
+              onClick={() => setIsCreateModalOpen(true)}
               className="group relative flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-xl bg-linear-76 from-cyan-400 to-emerald-300 px-6 text-sm font-bold tracking-wide text-neutral-900 shadow-[0px_0px_20px_0px_rgba(0,245,255,0.45)] outline outline-1 outline-offset-[-1px] outline-white/30 transition-transform hover:scale-[1.02]"
             >
               <PlusIcon className="size-4" strokeWidth={2.5} />
-              Create Deck
+                Create Deck
               <span className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
             </button>
+
+            <CreateDeckModal 
+              isOpen={isCreateModalOpen}
+              onClose={() => setIsCreateModalOpen(false)}
+            />
           </>
         }
       />

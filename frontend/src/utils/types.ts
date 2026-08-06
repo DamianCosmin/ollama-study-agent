@@ -30,6 +30,9 @@ export interface IDeckCard {
   lastToAnswer: number;
 };
 
+export type DeckCardCount = 15 | 25 | 40;
+export type DeckDifficulty = "easy" | "medium" | "hard";
+
 // Library
 export type LibraryCardTag = "Vectorized" | "Extracting concepts" | "Failed to parse";
 
@@ -39,6 +42,7 @@ export interface ILibraryCard {
   uploadDate: Date;
   status: string;
   nrPages: number;
+  category: string;
 };
 
 // Recent answers

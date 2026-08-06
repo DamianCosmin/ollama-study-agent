@@ -9,7 +9,7 @@ import { DIFFICULTY_STYLES } from "../utils/styles.ts";
 import { IDeckCard } from "../utils/types.ts";
 import { formatLastAccessedDate } from "../utils/functions.ts";
 
-export interface DeckCardProps {
+interface DeckCardProps {
   deck: IDeckCard;
   onStart?: (id: string) => void;
   onRename?: (id: string) => void;

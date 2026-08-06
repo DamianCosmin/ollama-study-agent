@@ -4,7 +4,7 @@ from sqlmodel import SQLModel
 from contextlib import asynccontextmanager
 
 from app.db import engine
-from app.routers import documents_router
+from app.routers import documents_router, decks_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(documents_router)
+app.include_router(decks_router)
 
 @app.get("/")
 def main():

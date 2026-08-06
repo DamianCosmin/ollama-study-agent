@@ -6,7 +6,7 @@ from app.models import Document
 from app.websockets import ws_manager
 from app.db import engine
 from app.services.extraction import extract_text
-from app.services.categorization import categorize_document
+from app.services.ollama_service import categorize_document
 from app.services.chunking import chunk_text, add_chunks_metadata
 from app.services.embedding import create_embeddings
 from app.services.chromadb_storage import save_chunks
