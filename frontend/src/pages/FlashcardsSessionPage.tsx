@@ -51,6 +51,7 @@ const MOCK_DECK: IDeckCard = {
   title: "Neural Networks",
   difficulty: "hard",
   category: "computer",
+  status: "success",
   createdAt: new Date("2026-06-15T10:30:00"),
   lastAccessed: new Date("2026-07-22T08:15:00"),
   totalCards: 3,
@@ -72,7 +73,7 @@ function getMockFlashcards(deckId: string): IFlashcard[] {
     question: question,
     answer: answer,
     difficulty: MOCK_DECK.difficulty,
-    feedbackAnswer: null,
+    feedback: null,
   }));
 }
 
@@ -116,12 +117,12 @@ export default function FlashcardsSessionPage() {
 
   const handleFeedback = useCallback(
     (feedback: FlashcardFeedback) => {
-      if (mode !== "study" || currentCard.feedbackAnswer) {
+      if (mode !== "study" || currentCard.feedback) {
         return;
       }
 
       setFlashcards((prev) =>
-        prev.map((card) => (card.id === currentCard.id ? { ...card, feedbackAnswer: feedback } : card))
+        prev.map((card) => (card.id === currentCard.id ? { ...card, feedback: feedback } : card))
       );
     },
     [mode, currentCard]
@@ -154,7 +155,7 @@ export default function FlashcardsSessionPage() {
         return;
       }
 
-      if (mode === "study" && isFlipped && !currentCard.feedbackAnswer && ["1", "2", "3", "4"].includes(e.key)) {
+      if (mode === "study" && isFlipped && !currentCard.feedback && ["1", "2", "3", "4"].includes(e.key)) {
         const option = FEEDBACK_OPTIONS[Number(e.key) - 1];
         if (option)
             handleFeedback(option.key);
@@ -286,7 +287,7 @@ export default function FlashcardsSessionPage() {
                   </div>
 
                   <div className="border-t border-white/5 pt-3">
-                    {mode === "study" && !currentCard.feedbackAnswer && (
+                    {mode === "study" && !currentCard.feedback && (
                       <div className="flex flex-col items-center gap-2">
                         <span className="text-xs text-neutral-300 sm:text-sm">How well did you know this?</span>
 
@@ -309,7 +310,7 @@ export default function FlashcardsSessionPage() {
                       </div>
                     )}
 
-                    {mode === "study" && currentCard.feedbackAnswer && (
+                    {mode === "study" && currentCard.feedback && (
                       <div className="flex justify-center">
                         <button
                           onClick={handleContinue}

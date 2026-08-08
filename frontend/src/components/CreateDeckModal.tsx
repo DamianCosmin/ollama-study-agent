@@ -111,7 +111,8 @@ export default function CreateDeckModal({isOpen, onClose}: CreateDeckModalProps)
 
       if (response.ok) {
         // TO-DO: Close modal + Update flashcards page using websockets
-        console.log(data.message);
+        console.log(data.deck);
+        onClose()
       } else {
         console.error("Error: Failed to create the deck!", data);
       }

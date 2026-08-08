@@ -9,4 +9,4 @@ class Flashcard(CamelModel, table=True):
     question: str
     answer: str
     difficulty: str # "easy" | "medium" | "hard"
-    feedback: str # "instant" | "quick" | "slow" | struggled
+    feedback: str | None = Field(default=None) # "instant" | "quick" | "slow" | struggled

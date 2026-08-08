@@ -12,7 +12,7 @@ export interface IFlashcard {
   question: string;
   answer: string;
   difficulty: string;
-  feedbackAnswer?: FlashcardFeedback | null;
+  feedback?: FlashcardFeedback | null;
 };
 
 // Session
@@ -22,8 +22,9 @@ export type SessionMode = "study" | "review";
 export interface IDeckCard {
   id: string;
   title: string;
-  difficulty: string;
   category: string;
+  difficulty: string;
+  status: string;
   createdAt: Date;
   lastAccessed: Date;
   totalCards: number;
