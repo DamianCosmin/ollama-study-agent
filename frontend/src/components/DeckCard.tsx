@@ -21,7 +21,7 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
 
   const categoryAssets: {icon: LucideIcon; name: string; color: string} = CATEGORIES[deck.category] ?? CATEGORIES.general;
   const DeckIcon: LucideIcon = categoryAssets.icon;
-  const dueCards: number = deck.totalCards - deck.lastToAnswer + 1;
+  const dueCards: number = deck.nrCards - deck.lastUnanswered + 1;
   const difficultyTagStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()].tag ?? DIFFICULTY_STYLES.medium.tag;
   
   const layoutId = `deck-card-${deck.id}`;
@@ -60,7 +60,7 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
           <span className="flex items-center gap-1.5 text-xs leading-4 text-neutral-300">
             <LayersIcon className="size-3" />
 
-            <span>{deck.totalCards} Cards</span>
+            <span>{deck.nrCards} Cards</span>
             <span>•</span>
 
             {dueCards > 0 ? (

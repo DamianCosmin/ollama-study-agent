@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlmodel import Session, delete
+from sqlmodel import Session, select
 from pydantic import BaseModel
 from typing import Literal
 import asyncio
@@ -158,4 +158,12 @@ async def create_deck(
 
     return {
         "deck": deck
+    }
+
+@router.get("/api/decks")
+async def get_decks(session: Session = Depends(get_session)):
+    statement = select(Deck)
+
+    return {
+        "decks": session.exec(statement).all()
     }

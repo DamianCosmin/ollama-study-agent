@@ -1,4 +1,4 @@
-import { ILibraryCard } from "./types";
+import { IDeckCard, ILibraryCard } from "./types";
 
 export function formatLastAccessedDate(date: Date): string {
   const now = new Date();
@@ -29,4 +29,26 @@ export function convertToILibraryCard(rawDocument: Omit<ILibraryCard, "uploadDat
   }
 
   return newDocument;
+}
+
+export function convertToIDeckCard(rawDeck: Omit<IDeckCard, "createdAt" | "lastAccessed"> & {createdAt: string, lastAccessed: string}) : IDeckCard {
+  if (!rawDeck) {
+    throw new Error("Error: Convertion to IDeckCard failed!"); 
+  }
+
+  const formatIsoString = (dateString: string): string => {
+    if (!dateString) {
+      return "";
+    }
+
+    return dateString.includes(" ") ? dateString.replace(" ", "T") + "Z" : dateString;
+  }
+  
+  const newDeck: IDeckCard = {
+    ...rawDeck,
+    createdAt: new Date(formatIsoString(rawDeck.createdAt)),
+    lastAccessed: new Date(formatIsoString(rawDeck.lastAccessed)),
+  }
+
+  return newDeck;
 }

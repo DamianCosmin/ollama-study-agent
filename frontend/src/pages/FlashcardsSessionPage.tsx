@@ -48,14 +48,15 @@ const FEEDBACK_OPTIONS: FeedbackOption[] = [
 
 const MOCK_DECK: IDeckCard = {
   id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  documentId: "f47ac10b-58cc-4372-a567-0e02b2c3d478",
   title: "Neural Networks",
   difficulty: "hard",
   category: "computer",
   status: "success",
   createdAt: new Date("2026-06-15T10:30:00"),
   lastAccessed: new Date("2026-07-22T08:15:00"),
-  totalCards: 3,
-  lastToAnswer: 1,
+  nrCards: 3,
+  lastUnanswered: 1,
 }
 
 // TO-DO: Replace with real fetched Flashcards
@@ -85,12 +86,12 @@ export default function FlashcardsSessionPage() {
   const mode: SessionMode = searchParams.get("mode") === "review" ? "review" : "study";
 
   const [flashcards, setFlashcards] = useState<IFlashcard[]>(() => getMockFlashcards(deckId));
-  const [currentIndex, setCurrentIndex] = useState(mode === "study" ? MOCK_DECK.lastToAnswer : 1);
+  const [currentIndex, setCurrentIndex] = useState(mode === "study" ? MOCK_DECK.lastUnanswered : 1);
   const [isFlipped, setIsFlipped] = useState(false);
   const [direction, setDirection] = useState(1);
 
   // TO-DO: Fetch deck data using the id from the params
-  const total: number = MOCK_DECK.totalCards;
+  const total: number = MOCK_DECK.nrCards;
   const currentCard: IFlashcard = flashcards[currentIndex - 1];
   const progressLabel: string = `${currentIndex} / ${total}`;
 

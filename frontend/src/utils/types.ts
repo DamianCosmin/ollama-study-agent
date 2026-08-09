@@ -21,14 +21,15 @@ export type SessionMode = "study" | "review";
 // Decks
 export interface IDeckCard {
   id: string;
+  documentId: string;
   title: string;
   category: string;
   difficulty: string;
   status: string;
   createdAt: Date;
   lastAccessed: Date;
-  totalCards: number;
-  lastToAnswer: number;
+  nrCards: number;
+  lastUnanswered: number;
 };
 
 export type DeckCardCount = 15 | 25 | 40;

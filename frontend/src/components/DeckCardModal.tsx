@@ -94,7 +94,7 @@ export default function DeckCardModal({
         <div className="flex items-center gap-1.5 border-t border-white/5 pb-6 pt-5 text-xs leading-4 text-neutral-300 sm:text-sm">
           <LayersIcon className="size-3.5" />
 
-          <span>{deck.totalCards} Cards</span>
+          <span>{deck.nrCards} Cards</span>
           <span>•</span>
 
           {dueCards > 0 ? (
