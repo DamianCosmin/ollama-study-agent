@@ -25,4 +25,5 @@ class ConnectionManager:
         for connection in stale_connections:
             self.active_connections.remove(connection)
 
-manager = ConnectionManager()
+documents_ws_manager = ConnectionManager()
+decks_ws_manager = ConnectionManager()

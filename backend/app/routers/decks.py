@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, WebSocket, WebSocketDisconnect
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from typing import Literal
@@ -12,6 +12,7 @@ from app.services.chromadb_storage import collection
 from app.services.ollama_service import generate_cards_from_chunk
 from app.services.chunking import select_chunks
 from app.services.embedding import embed_flashcard_text
+from app.websockets import decks_ws_manager
 
 router = APIRouter()
 
@@ -95,6 +96,9 @@ async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID):
         with get_session_context() as session:
             deck = session.get(Deck, deck_id)
 
+            if not deck:
+                return
+
             for idx, card in enumerate(final_cards):
                 session.add(Flashcard(
                     deck_id=deck_id,
@@ -104,10 +108,22 @@ async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID):
                     difficulty=deck_info.difficulty
                 ))
 
+            # TO-DO: Generate the title using Ollama
+            deck.title = "Finished"
             deck.status = "success"
             deck.nr_cards = len(final_cards)
             session.add(deck)
             session.commit()
+            session.refresh(deck)
+
+            updated_deck = {
+                "id": str(deck_id),
+                "title": deck.title,
+                "status": deck.status,
+                "nrCards": deck.nr_cards
+            }
+
+        await safe_broadcast(updated_deck)
     except Exception as e:
         print(f"Deck generation failed for deck {str(deck_id)}: {e}")
         await mark_deck_failed(deck_id)
@@ -119,6 +135,24 @@ async def mark_deck_failed(deck_id: uuid.UUID):
             deck.status = "error"
             session.add(deck)
             session.commit()
+            session.refresh(deck)
+
+            updated_deck = {
+                "id": str(deck_id),
+                "title": deck.title,
+                "status": deck.status,
+                "nrCards": deck.nr_cards
+            }
+        else:
+            return
+
+    await safe_broadcast(updated_deck)
+
+async def safe_broadcast(payload: dict):
+    try:
+        await decks_ws_manager.broadcast(payload)
+    except Exception as e:
+        print(f"Broadcast failed for deck {payload.get('id')}: {e}")
 
 @router.post("/api/deck")
 async def create_deck(
@@ -167,3 +201,13 @@ async def get_decks(session: Session = Depends(get_session)):
     return {
         "decks": session.exec(statement).all()
     }
+
+@router.websocket("/ws/decks")
+async def documents_websocket(websocket: WebSocket):
+    await decks_ws_manager.connect(websocket)
+
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        decks_ws_manager.disconnect(websocket)

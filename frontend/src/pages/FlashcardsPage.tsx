@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SearchIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
 
 import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer from "../components/RecentAnswer.tsx";
 import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
-import { API_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
+import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
 import { convertToIDeckCard } from "../utils/functions.ts";
 
 const RECENTLY_ANSWERED: IRecentAnswer[] = [
@@ -40,6 +40,7 @@ export default function FlashcardsPage() {
   const [filter, setFilter] = useState<"all" | "due">("all");
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
+  const socketRef = useRef<WebSocket | null>(null);
 
   const fetchDecks = async () => {
     try {
@@ -66,9 +67,39 @@ export default function FlashcardsPage() {
     }
   }
 
+  const handleSubmit = (deck: IDeckCard) => {
+    setDecks((prev) => prev ? [deck, ...prev] : [deck]);
+  }
+
+  const handleDeckGeneration = (id: string, title: string, status: string, nrCardsStr: string) => {
+    const nrCards: number = Number.parseInt(nrCardsStr);
+
+    setDecks((prev) => 
+      prev ? prev.map((deck) => deck.id === id ? {...deck, title, status, nrCards} : deck) : prev
+    );
+  }
+
   useEffect(() => {
     fetchDecks();
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    const socket = new WebSocket(`${WS_BASE}/decks`);
+    socketRef.current = socket;
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      handleDeckGeneration(data.id, data.title, data.status, data.nrCards);
+    }
+
+    socket.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    }
+
+    return () => {
+      socket.close()
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
@@ -107,6 +138,7 @@ export default function FlashcardsPage() {
             <CreateDeckModal 
               isOpen={isCreateModalOpen}
               onClose={() => setIsCreateModalOpen(false)}
+              onSubmit={handleSubmit}
             />
           </>
         }

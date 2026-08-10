@@ -6,7 +6,7 @@ import uuid
 
 from app.models import Document
 from app.db import get_session
-from app.websockets import ws_manager
+from app.websockets import documents_ws_manager
 from app.services import vectorize_document
 from app.services.chromadb_storage import delete_data, get_all_data, delete_all_data
 
@@ -135,13 +135,13 @@ async def delete_document(document_id: uuid.UUID, session: Session = Depends(get
 
 @router.websocket("/ws/documents")
 async def documents_websocket(websocket: WebSocket):
-    await ws_manager.connect(websocket)
+    await documents_ws_manager.connect(websocket)
 
     try:
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        ws_manager.disconnect(websocket)
+        documents_ws_manager.disconnect(websocket)
 
 # Testing purposes only
 @router.get("/api/debug/chromadb")

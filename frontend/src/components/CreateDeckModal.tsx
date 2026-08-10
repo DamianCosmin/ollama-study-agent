@@ -3,12 +3,14 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon, FileTextIcon, LeafIcon, SparklesIcon, FlameIcon, LayersIcon, InfoIcon, type LucideIcon } from "lucide-react";
 
-import { API_BASE, ILibraryCard, DeckCardCount, DeckDifficulty } from "../utils/types.ts";
-import { convertToILibraryCard } from "../utils/functions.ts";
+import { API_BASE, ILibraryCard, DeckCardCount, DeckDifficulty, IDeckCard, IPopupStatus } from "../utils/types.ts";
+import { convertToILibraryCard, convertToIDeckCard } from "../utils/functions.ts";
+import StatusPopup from "./StatusPopup.tsx";
 
 interface CreateDeckModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (deck: IDeckCard) => void;
 }
 
 interface DifficultyOption {
@@ -26,11 +28,12 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = [
 
 const CARD_COUNT_OPTIONS: DeckCardCount[] = [15, 25, 40];
 
-export default function CreateDeckModal({isOpen, onClose}: CreateDeckModalProps) {
+export default function CreateDeckModal({isOpen, onClose, onSubmit}: CreateDeckModalProps) {
   const [documents, setDocuments] = useState<ILibraryCard[]>([]);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<DeckDifficulty | null>(null);
   const [cardCount, setCardCount] = useState<DeckCardCount | null>(null);
+  const [status, setStatus] = useState<IPopupStatus | null>(null);
 
   const fetchDocuments = async () => {
     try {
@@ -49,10 +52,10 @@ export default function CreateDeckModal({isOpen, onClose}: CreateDeckModalProps)
 
         setDocuments(docs);
       } else {
-        console.error("Error: Failed to retrieve documents!", data);
+        setStatus({text: "Error: Failed to retrieve documents!", type: "error"});
       }
     } catch (err) {
-      console.error("Error: Could not connect to backend!", err);
+      setStatus({text: "Error: Could not connect to the backend!", type: "error"});
     }
   };
 
@@ -110,16 +113,20 @@ export default function CreateDeckModal({isOpen, onClose}: CreateDeckModalProps)
       const data = await response.json();
 
       if (response.ok) {
-        // TO-DO: Close modal + Update flashcards page using websockets
-        console.log(data.deck);
+        const deck: IDeckCard = convertToIDeckCard(data.deck);
         onClose()
+        onSubmit(deck);
       } else {
-        console.error("Error: Failed to create the deck!", data);
+        setStatus({text: "Error: Failed to create the deck!", type: "error"});
       }
     } catch (err) {
-      console.error("Error: Could not connect to backend!", err);
+      setStatus({text: "Error: Could not connect to the backend!", type: "error"});
     }
   };
+
+  const clearStatus = () => {
+    setStatus(null);
+  }
 
   if (typeof document === "undefined") {
     return null;
@@ -273,6 +280,11 @@ export default function CreateDeckModal({isOpen, onClose}: CreateDeckModalProps)
               </button>
             </div>
           </motion.div>
+
+          <StatusPopup
+            status={status}
+            onClearStatus={clearStatus}
+          />
         </div>
       )}
     </AnimatePresence>,

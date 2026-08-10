@@ -1,1 +1,1 @@
-from app.websockets.manager import manager as ws_manager
+from app.websockets.manager import documents_ws_manager, decks_ws_manager

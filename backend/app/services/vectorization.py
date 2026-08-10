@@ -3,7 +3,7 @@ import uuid
 import asyncio
 
 from app.models import Document
-from app.websockets import ws_manager
+from app.websockets import documents_ws_manager
 from app.db import engine
 from app.services.extraction import extract_text
 from app.services.ollama_service import categorize_document
@@ -62,7 +62,7 @@ async def vectorize_document(document_id: uuid.UUID, file_path: str):
             session.commit()
 
     try:
-        await ws_manager.broadcast({
+        await documents_ws_manager.broadcast({
             "documentId": str(document_id),
             "status": final_status,
             "pages": str(final_nr_pages)
