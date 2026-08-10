@@ -1,10 +1,10 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends, BackgroundTasks, WebSocket, WebSocketDisconnect
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 import os
 import shutil
 import uuid
 
-from app.models import Document
+from app.models import Document, Deck, Flashcard
 from app.db import get_session
 from app.websockets import documents_ws_manager
 from app.services import vectorize_document
@@ -123,8 +123,17 @@ async def delete_document(document_id: uuid.UUID, session: Session = Depends(get
     except Exception as e:
         print(f"ChromaDB cleanup failed for {str(document_id)}: {str(e)}")
 
-    # TO_DO: Delete related decks
-    # TO-DO: Delete related flashcards
+    # Delete related flashcards
+    statement = select(Deck.id).where(Deck.document_id == document_id)
+    related_deck_ids = session.exec(statement).all()
+
+    if related_deck_ids:
+        statement = delete(Flashcard).where(Flashcard.deck_id.in_(related_deck_ids))
+        session.exec(statement)
+
+    # Delete related decks
+    statement = delete(Deck).where(Deck.document_id == document_id)
+    session.exec(statement)
     
     session.delete(document)
     session.commit()
