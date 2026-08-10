@@ -9,7 +9,7 @@ import numpy as np
 from app.db import get_session, get_session_context
 from app.models import Document, Deck, Flashcard
 from app.services.chromadb_storage import collection
-from app.services.ollama_service import generate_cards_from_chunk
+from app.services.ollama_service import generate_cards_from_chunk, generate_deck_title
 from app.services.chunking import select_chunks
 from app.services.embedding import embed_flashcard_text
 from app.websockets import decks_ws_manager
@@ -56,7 +56,7 @@ async def deduplicate_cards(cards: list[dict], similarity_threshold: float = 0.8
 
     return kept_cards
 
-async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID):
+async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID, deck_category: str):
     try:
         # Extract document data from ChromaDB
         results = collection.get(
@@ -92,6 +92,9 @@ async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID):
             await mark_deck_failed(deck_id)
             return
 
+        # Generate a suitable title for the deck based on the questions
+        generated_title = await generate_deck_title(final_cards, deck_category)
+
         # Save all flashcards in DB
         with get_session_context() as session:
             deck = session.get(Deck, deck_id)
@@ -108,8 +111,7 @@ async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID):
                     difficulty=deck_info.difficulty
                 ))
 
-            # TO-DO: Generate the title using Ollama
-            deck.title = "Finished"
+            deck.title = generated_title
             deck.status = "success"
             deck.nr_cards = len(final_cards)
             session.add(deck)
@@ -132,6 +134,7 @@ async def mark_deck_failed(deck_id: uuid.UUID):
     with get_session_context() as session:
         deck = session.get(Deck, deck_id)
         if deck:
+            deck.title = "Failed"
             deck.status = "error"
             session.add(deck)
             session.commit()
@@ -188,7 +191,7 @@ async def create_deck(
     session.commit()
     session.refresh(deck)
 
-    background_tasks.add_task(run_deck_generation, deck_info, deck.id)
+    background_tasks.add_task(run_deck_generation, deck_info, deck.id, deck.category)
 
     return {
         "deck": deck

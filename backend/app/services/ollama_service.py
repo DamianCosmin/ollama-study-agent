@@ -2,7 +2,7 @@ import ollama
 import textwrap
 import json
 
-ollama_aync_client = ollama.AsyncClient(host="http://localhost:11434")
+ollama_async_client = ollama.AsyncClient(host="http://localhost:11434")
 ALLOWED_CATEGORIES = ["mathematics", "sciences", "biology", "anatomy", "computer", "psychology", "literature", "history", "geography", "law", "economics", "arts", "engineering", "agriculture", "general"]
 
 DIFFICULTY_INSTRUCTIONS = {
@@ -12,7 +12,7 @@ DIFFICULTY_INSTRUCTIONS = {
 }
 
 def categorize_document(extracted_text: str):
-    sample_text = extracted_text[:2000]
+    sample_text = extracted_text[:2500]
 
     prompt = textwrap.dedent(f"""
         You are an expert text classifier. Your task is to analyze the provided text and classify 
@@ -51,7 +51,6 @@ def categorize_document(extracted_text: str):
 
     return category
 
-# TO-DO: Add a function for title generation after the entire flashcard processing is complete
 async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_chunk: int):
     prompt = textwrap.dedent(f"""
         You are a professional flashcards generator. Your task is to generate up to 
@@ -70,7 +69,7 @@ async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_
 
     """).strip()
 
-    response = await ollama_aync_client.generate(
+    response = await ollama_async_client.generate(
         model='qwen2.5:7b-instruct',
         prompt=prompt,
         stream=False
@@ -81,3 +80,34 @@ async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_
         return cards if isinstance(cards, list) else []
     except json.JSONDecodeError:
         return []
+
+async def generate_deck_title(cards: list[dict], category: str):
+    questions = [c["question"] for c in cards[:10]]
+    questions_text = "\n".join(f"- {q}" for q in questions if q)
+
+    prompt = textwrap.dedent(f"""
+        You are an expert title generator. Your task is to create a short, highly descriptive title for a flashcard deck.
+
+        Context:
+        - Category: {category.upper()}
+        - Sample Questions:
+        {questions_text}
+
+        Rules:
+        1. The title MUST have a maximum of 8 words.
+        2. Make it as short, punchy, and specific as possible based on the questions.
+        3. Respond ONLY with the title. Do NOT wrap it in quotes, and do NOT include any conversational filler.
+    """).strip()
+
+    response = await ollama_async_client.generate(
+        model='qwen2.5:7b-instruct',
+        prompt=prompt,
+        stream=False
+    )
+    
+    title = response["response"].strip().capitalize()
+
+    if not title:
+        return f"{category.capitalize()} Flashcards"
+    
+    return title

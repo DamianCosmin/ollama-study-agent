@@ -4,8 +4,8 @@ import numpy as np
 
 def chunk_text(extracted_text: str):
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=100,
+        chunk_size=1400,
+        chunk_overlap=200,
         separators=["\n\n", "\n", ". ", "! ", "? ", ", ", ".", "!", "?", ",", " ", ""]
     )
 
@@ -42,7 +42,7 @@ def select_chunks(chunks: list[dict], card_count: int) -> list[dict]:
         cluster_indices = np.where(kmeans.labels_ == cluster_id)[0]
         if len(cluster_indices) == 0:
             continue
-        
+
         centroid = kmeans.cluster_centers_[cluster_id]
         distances = np.linalg.norm(embeddings[cluster_indices] - centroid, axis=1)
         closest_idx = cluster_indices[np.argmin(distances)]
