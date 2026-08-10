@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, WebSocket, WebSocketDisconnect
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 from pydantic import BaseModel
 from typing import Literal
 import asyncio
@@ -203,6 +203,26 @@ async def get_decks(session: Session = Depends(get_session)):
 
     return {
         "decks": session.exec(statement).all()
+    }
+
+@router.delete("/api/decks/{deck_id}")
+async def delete_deck(deck_id: uuid.UUID, session: Session = Depends(get_session)):
+    deck = session.get(Deck, deck_id)
+
+    if not deck:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Deck not found!"
+        )
+
+    statement = delete(Flashcard).where(Flashcard.deck_id == deck_id)
+    session.exec(statement)
+
+    session.delete(deck)
+    session.commit()
+
+    return {
+        "deckId": deck_id
     }
 
 @router.websocket("/ws/decks")

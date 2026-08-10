@@ -13,7 +13,7 @@ interface DeckCardProps {
   deck: IDeckCard;
   onStart?: (id: string) => void;
   onRename?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCardProps) {
@@ -25,6 +25,14 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
   const difficultyTagStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()].tag ?? DIFFICULTY_STYLES.medium.tag;
   
   const layoutId = `deck-card-${deck.id}`;
+
+  const deleteDeck = async () => {
+    try {
+      await onDelete(deck.id);
+    } finally {
+      setIsOpen(false);
+    }
+  }
 
   return (
     <>
@@ -89,7 +97,7 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
                 onClose={() => setIsOpen(false)}
                 onStart={onStart}
                 onRename={onRename}
-                onDelete={onDelete}
+                onDelete={deleteDeck}
               />
             )}
           </AnimatePresence>,

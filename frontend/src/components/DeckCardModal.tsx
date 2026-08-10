@@ -14,7 +14,7 @@ interface DeckCardModalProps {
   onClose: () => void;
   onStart?: (id: string) => void;
   onRename?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDelete: () => void;
 }
 
 export default function DeckCardModal({
@@ -151,10 +151,7 @@ export default function DeckCardModal({
               </button>
 
               <button
-                onClick={() => {
-                  onDelete?.(deck.id);
-                  onClose();
-                }}
+                onClick={() => onDelete()}
                 className="rounded-md bg-red-300/10 px-3 py-1.5 text-xs text-red-300 outline outline-1 outline-offset-[-1px] outline-red-300/30 transition-colors hover:bg-red-300/20"
               >
                 Confirm

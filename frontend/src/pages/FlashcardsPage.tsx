@@ -5,7 +5,8 @@ import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer from "../components/RecentAnswer.tsx";
 import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
-import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
+import StatusPopup from "../components/StatusPopup.tsx";
+import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard, IPopupStatus } from "../utils/types.ts";
 import { convertToIDeckCard } from "../utils/functions.ts";
 
 const RECENTLY_ANSWERED: IRecentAnswer[] = [
@@ -38,6 +39,7 @@ export default function FlashcardsPage() {
   const [decks, setDecks] = useState<IDeckCard[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
+  const [status, setStatus] = useState<IPopupStatus | null>(null);
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
   const socketRef = useRef<WebSocket | null>(null);
@@ -78,6 +80,28 @@ export default function FlashcardsPage() {
       prev ? prev.map((deck) => deck.id === id ? {...deck, title, status, nrCards} : deck) : prev
     );
   }
+
+  const handleDeckDelete = async (deckId: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/decks/${deckId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const deletedID: string = data.deckId;
+        setDecks((prev) => prev.filter((deck) => deck.id !== deletedID));
+        setStatus({ text: "Deck was deleted successfully!", type: "success" });
+      } else {
+        console.error("Error: Failed to delete deck!", data);
+        setStatus({ text: "Error: Failed to delete the deck!", type: "error" });
+      }
+    } catch (err) {
+      console.error("Error: Could not connect to backend!", err);
+      setStatus({ text: "Error: Could not connect to the backend!", type: "error" });
+    }
+  };
 
   useEffect(() => {
     fetchDecks();
@@ -182,9 +206,10 @@ export default function FlashcardsPage() {
               <DeckCard 
                 key={deck.id}
                 deck={deck}
+                // TO-DO: Add functions here to complete the API
                 onStart={() => {}}
                 onRename={() => {}}
-                onDelete={() => {}}
+                onDelete={handleDeckDelete}
               />
             ))}
           </div>
@@ -224,6 +249,11 @@ export default function FlashcardsPage() {
           </div>
         </div>
       </div>
+
+      <StatusPopup
+        status={status}
+        onClearStatus={() => setStatus(null)}
+      />
     </div>
   );
 }
