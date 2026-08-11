@@ -12,8 +12,8 @@ import { formatLastAccessedDate } from "../utils/functions.ts";
 interface DeckCardProps {
   deck: IDeckCard;
   onStart?: (id: string) => void;
-  onRename?: (id: string) => void;
-  onDelete: (id: string) => void;
+  onRename: (id: string, newTitle: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
 export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCardProps) {
@@ -25,6 +25,14 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
   const difficultyTagStyle: string = DIFFICULTY_STYLES[deck.difficulty.toLowerCase()].tag ?? DIFFICULTY_STYLES.medium.tag;
   
   const layoutId = `deck-card-${deck.id}`;
+
+  const renameDeck = async (id: string, newTitle: string) => {
+    try {
+      await onRename(id, newTitle);
+    } finally {
+      setIsOpen(false);
+    }
+  }
 
   const deleteDeck = async () => {
     try {
@@ -96,7 +104,7 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
                 dueCards={dueCards}
                 onClose={() => setIsOpen(false)}
                 onStart={onStart}
-                onRename={onRename}
+                onRename={renameDeck}
                 onDelete={deleteDeck}
               />
             )}

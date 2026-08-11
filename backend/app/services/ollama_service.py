@@ -94,7 +94,7 @@ async def generate_deck_title(cards: list[dict], category: str):
         {questions_text}
 
         Rules:
-        1. The title MUST have a maximum of 8 words.
+        1. The title MUST have a maximum of 100 characters.
         2. Make it as short, punchy, and specific as possible based on the questions.
         3. Respond ONLY with the title. Do NOT wrap it in quotes, and do NOT include any conversational filler.
     """).strip()

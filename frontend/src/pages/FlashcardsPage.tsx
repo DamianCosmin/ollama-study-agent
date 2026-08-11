@@ -81,6 +81,38 @@ export default function FlashcardsPage() {
     );
   }
 
+  const handleTitleRename = async (deckId: string, newTitle: string) => {
+    try {
+      const titleBody = {
+        "newTitle": newTitle
+      }
+
+      const response = await fetch(`${API_BASE}/decks/${deckId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(titleBody),
+      })
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const updatedTitle: string = data.title ?? newTitle;
+        setDecks((prev) =>
+          prev.map((deck) => (deck.id === deckId ? { ...deck, title: updatedTitle } : deck))
+        );
+        setStatus({ text: "Deck renamed successfully!", type: "success" });
+      } else {
+        console.error("Error: Failed to rename deck!", data);
+        setStatus({ text: "Error: Failed to rename the deck!", type: "error" });
+      }
+    } catch (err) {
+      console.error("Error: Could not connect to backend!", err);
+      setStatus({ text: "Error: Could not connect to the backend!", type: "error" });
+    }
+  }
+
   const handleDeckDelete = async (deckId: string) => {
     try {
       const response = await fetch(`${API_BASE}/decks/${deckId}`, {
@@ -208,7 +240,7 @@ export default function FlashcardsPage() {
                 deck={deck}
                 // TO-DO: Add functions here to complete the API
                 onStart={() => {}}
-                onRename={() => {}}
+                onRename={handleTitleRename}
                 onDelete={handleDeckDelete}
               />
             ))}

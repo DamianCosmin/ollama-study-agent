@@ -21,6 +21,9 @@ class CreateDeckRequest(BaseModel):
     difficulty: Literal["easy", "medium", "hard"]
     cardCount: Literal[15, 25, 40]
 
+class RenameDeckRequest(BaseModel):
+    newTitle: str
+
 # Generate flashcards from every chunk concurrently
 async def generate_flashcards(chunks: list[dict], difficulty: str):
     tasks = [generate_cards_from_chunk(chunk["text"], difficulty, 2) for chunk in chunks]
@@ -204,6 +207,25 @@ async def get_decks(session: Session = Depends(get_session)):
     return {
         "decks": session.exec(statement).all()
     }
+
+@router.patch("/api/decks/{deck_id}")
+async def rename_deck(deck_id: uuid.UUID, title_body: RenameDeckRequest, session: Session = Depends(get_session)):
+    deck = session.get(Deck, deck_id)
+
+    if not deck:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Deck not found!"
+        )
+
+    deck.title = title_body.newTitle
+
+    session.commit()
+    session.refresh(deck)
+
+    return {
+        "deck": deck
+    }    
 
 @router.delete("/api/decks/{deck_id}")
 async def delete_deck(deck_id: uuid.UUID, session: Session = Depends(get_session)):

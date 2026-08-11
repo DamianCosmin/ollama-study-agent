@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { LayersIcon, PlayIcon, PencilIcon, Trash2Icon, XIcon, type LucideIcon } from "lucide-react";
+import { LayersIcon, PlayIcon, PencilIcon, Trash2Icon, XIcon, CheckIcon, type LucideIcon } from "lucide-react";
 
 import { IDeckCard } from "../utils/types.ts";
 import { formatLastAccessedDate } from "../utils/functions.ts";
+
+const MAX_TITLE_CHARS = 100;
 
 interface DeckCardModalProps {
   deck: IDeckCard;
@@ -13,8 +15,8 @@ interface DeckCardModalProps {
   dueCards: number;
   onClose: () => void;
   onStart?: (id: string) => void;
-  onRename?: (id: string) => void;
-  onDelete: () => void;
+  onRename: (id: string, newTitle: string) => Promise<void>;
+  onDelete: () => Promise<void>;
 }
 
 export default function DeckCardModal({
@@ -30,6 +32,34 @@ export default function DeckCardModal({
 }: DeckCardModalProps) {
   const DeckIcon = categoryAssets.icon;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(deck.title);
+  const charCount = titleDraft.trim().length;
+  const isTitleValid = charCount > 0 && charCount <= MAX_TITLE_CHARS;
+
+  const startRenaming = () => {
+    if (deck.status !== "success")
+      return
+
+    setTitleDraft(deck.title);
+    setIsRenaming(true);
+    setConfirmingDelete(false);
+  };
+
+  const cancelRenaming = () => {
+    setTitleDraft(deck.title);
+    setIsRenaming(false);
+  };
+
+  const submitRenaming = () => {
+    if (!isTitleValid)
+      return;
+
+    onRename(deck.id, titleDraft.trim());
+    setIsRenaming(false);
+    onClose();
+  };
 
   // Lock background scroll and allow Escape to close while the modal is open
   useEffect(() => {
@@ -120,15 +150,63 @@ export default function DeckCardModal({
             }}
           />
 
-          <ModalAction
-            icon={PencilIcon}
-            label="Rename deck"
-            iconColor="text-neutral-300"
-            onClick={() => {
-              onRename?.(deck.id);
-              onClose();
-            }}
-          />
+          {!isRenaming ? (
+            <ModalAction
+              icon={PencilIcon}
+              label="Rename deck"
+              iconColor="text-neutral-300"
+              onClick={startRenaming}
+              disabled={deck.status !== "success"}
+            />
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.15 }}
+              className="flex flex-col gap-2 rounded-lg px-3 py-3 outline outline-1 outline-offset-[-1px] outline-cyan-300/20 bg-cyan-300/5"
+            >
+              <div className="flex items-center gap-2">
+                <PencilIcon className="size-4 shrink-0 text-neutral-300" />
+                <input
+                  type="text"
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") 
+                      submitRenaming();
+                  }}
+                  autoFocus
+                  maxLength={MAX_TITLE_CHARS}
+                  className="min-w-0 flex-1 rounded-md bg-white/5 px-2.5 py-1.5 text-sm text-zinc-200 outline outline-1 outline-offset-[-1px] outline-white/10 focus:outline-cyan-300/50 [color-scheme:dark]"
+                  placeholder="Enter a new title..."
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${isTitleValid ? "text-neutral-300" : "text-red-300"}`}>
+                  {charCount}/{MAX_TITLE_CHARS} characters
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={cancelRenaming}
+                    className="rounded-md px-3 py-1.5 text-xs text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 transition-colors hover:bg-white/10"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={submitRenaming}
+                    disabled={!isTitleValid}
+                    className="flex items-center gap-1 rounded-md bg-cyan-300/10 px-3 py-1.5 text-xs text-cyan-300 outline outline-1 outline-offset-[-1px] outline-cyan-300/30 transition-colors hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <CheckIcon className="size-3.5" />
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {!confirmingDelete ? (
             <ModalAction
@@ -136,7 +214,10 @@ export default function DeckCardModal({
               label="Delete deck"
               iconColor="text-red-300"
               labelColor="text-red-300"
-              onClick={() => setConfirmingDelete(true)}
+              onClick={() => {
+                setConfirmingDelete(true);
+                cancelRenaming();
+              }}
             />
           ) : (
             <div className="flex items-center gap-2 rounded-lg px-3 py-3 outline outline-1 outline-offset-[-1px] outline-red-300/20 bg-red-300/5">
@@ -170,13 +251,15 @@ interface ModalActionProps {
   iconColor: string;
   labelColor?: string;
   onClick: () => void;
+  disabled?: boolean;
 }
 
-function ModalAction({ icon: Icon, label, iconColor, labelColor, onClick }: ModalActionProps) {
+function ModalAction({ icon: Icon, label, iconColor, labelColor, onClick, disabled }: ModalActionProps) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-zinc-200 outline outline-1 outline-offset-[-1px] outline-white/0 transition-colors hover:bg-white/5 hover:outline-white/10 sm:text-base"
+      disabled={disabled}
+      className="flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-zinc-200 outline outline-1 outline-offset-[-1px] outline-white/0 transition-colors hover:bg-white/5 hover:outline-white/10 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:outline-transparent sm:text-base"
     >
       <Icon className={`size-5 ${iconColor}`} />
       <span className={labelColor ?? "text-zinc-200"}>{label}</span>
