@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { LayersIcon, PlayIcon, PencilIcon, Trash2Icon, XIcon, CheckIcon, type LucideIcon } from "lucide-react";
 
 import { IDeckCard } from "../utils/types.ts";
+import { FAILED_DECK_TAG_STYLE, FAILED_DECK_ICON_STYLE } from "../utils/styles.ts";
 import { formatLastAccessedDate } from "../utils/functions.ts";
 
 const MAX_TITLE_CHARS = 100;
@@ -12,6 +13,7 @@ interface DeckCardModalProps {
   layoutId: string;
   categoryAssets: {icon: LucideIcon; name: string; color: string};
   difficultyTagStyle: string;
+  deckStatusStyle: {background: string, modalBackground: string, glow: string};
   dueCards: number;
   onClose: () => void;
   onStart?: (id: string) => void;
@@ -24,19 +26,22 @@ export default function DeckCardModal({
   layoutId,
   categoryAssets,
   difficultyTagStyle,
+  deckStatusStyle,
   dueCards,
   onClose,
   onStart,
   onRename,
   onDelete,
 }: DeckCardModalProps) {
-  const DeckIcon = categoryAssets.icon;
+  const DeckIcon: LucideIcon = categoryAssets.icon;
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState(deck.title);
-  const charCount = titleDraft.trim().length;
-  const isTitleValid = charCount > 0 && charCount <= MAX_TITLE_CHARS;
+  const charCount: number = titleDraft.trim().length;
+  const isTitleValid: boolean = charCount > 0 && charCount <= MAX_TITLE_CHARS;
+  
+  const validDeck: boolean = deck.status !== "error";
 
   const startRenaming = () => {
     if (deck.status !== "success")
@@ -91,9 +96,9 @@ export default function DeckCardModal({
 
       <motion.div
         layoutId={layoutId}
-        className="relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-y-auto rounded-2xl bg-white/5 p-6 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:p-8"
+        className={`relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-y-auto rounded-2xl p-6 ${deckStatusStyle.modalBackground} outline outline-1 outline-offset-[-1px] backdrop-blur-[10px] sm:p-8`}
       >
-        <div className="pointer-events-none absolute -top-10 right-0 size-40 rounded-full bg-cyan-400/5 blur-[20px]" />
+        <div className={`pointer-events-none absolute -top-10 right-0 size-40 rounded-full ${deckStatusStyle.glow} blur-[20px]`} />
 
         <button
           onClick={onClose}
@@ -105,10 +110,10 @@ export default function DeckCardModal({
 
         <div className="flex items-start justify-between pr-10">
           <div className="flex size-14 items-center justify-center rounded-lg bg-white/10 outline outline-1 outline-offset-[-1px] outline-white/20 backdrop-blur-[20px] sm:size-16">
-            <DeckIcon className={`size-6 ${categoryAssets.color} sm:size-7`} />
+            <DeckIcon className={`size-6 ${validDeck ? categoryAssets.color : FAILED_DECK_ICON_STYLE} sm:size-7`} />
           </div>
 
-          <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${difficultyTagStyle}`}>
+          <span className={`rounded-sm px-2 py-1 text-xs outline outline-1 outline-offset-[-1px] ${validDeck ? difficultyTagStyle : FAILED_DECK_TAG_STYLE}`}>
             {deck.difficulty.toUpperCase()}
           </span>
         </div>
@@ -117,27 +122,35 @@ export default function DeckCardModal({
           {deck.title}
         </div>
 
-        <div className="pb-4 text-sm leading-5 text-neutral-300 sm:text-base">
+        <div className="mt-3 pb-4 text-sm leading-5 text-neutral-300 sm:text-base">
           {categoryAssets.name}
         </div>
 
-        <div className="flex items-center gap-1.5 border-t border-white/5 pb-6 pt-5 text-xs leading-4 text-neutral-300 sm:text-sm">
-          <LayersIcon className="size-3.5" />
+        {validDeck ? (
+          <div className="flex items-center gap-1.5 border-t border-white/5 pb-6 pt-5 text-xs leading-4 text-neutral-300 sm:text-sm">
+            <LayersIcon className="size-3.5" />
 
-          <span>{deck.nrCards} Cards</span>
-          <span>•</span>
+            <span>{deck.nrCards} Cards</span>
+            <span>•</span>
 
-          {dueCards > 0 ? (
-            <span className="text-emerald-400">{dueCards} Due</span>
-          ) : (
-            <span className="text-neutral-400">Up to date</span>
-          )}
+            {dueCards > 0 ? (
+              <span className="text-emerald-400">{dueCards} Due</span>
+            ) : (
+              <span className="text-neutral-400">Up to date</span>
+            )}
 
-          <span>•</span>
-          <span className="text-neutral-300/70">
-            {`Last studied: ${formatLastAccessedDate(deck.lastAccessed)}`}
-          </span>
-        </div>
+            <span>•</span>
+            <span className="text-neutral-300/70">
+              {`Last studied: ${formatLastAccessedDate(deck.lastAccessed)}`}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 border-t border-white/5 pb-6 pt-5 text-xs leading-4 sm:text-sm">
+            <span className="flex items-center gap-1.5 text-sm leading-4 text-red-400">
+              <span>Failed to generate deck</span>
+            </span>
+          </div>
+        )}
 
         <div className="flex flex-col gap-1.5">
           <ModalAction
@@ -148,6 +161,7 @@ export default function DeckCardModal({
               onStart?.(deck.id);
               onClose();
             }}
+            disabled={deck.status !== "success"}
           />
 
           {!isRenaming ? (
