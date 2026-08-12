@@ -16,7 +16,7 @@ interface DeckCardModalProps {
   deckStatusStyle: {background: string, modalBackground: string, glow: string};
   dueCards: number;
   onClose: () => void;
-  onStart?: (id: string) => void;
+  onStart: () => void;
   onRename: (id: string, newTitle: string) => Promise<void>;
   onDelete: () => Promise<void>;
 }
@@ -158,7 +158,7 @@ export default function DeckCardModal({
             label="Start answering"
             iconColor="text-cyan-300"
             onClick={() => {
-              onStart?.(deck.id);
+              onStart();
               onClose();
             }}
             disabled={deck.status !== "success"}

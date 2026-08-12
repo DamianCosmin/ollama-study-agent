@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { SearchIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
 
 import { PageHeader } from "../components/PageHeader.tsx";
@@ -40,9 +41,12 @@ export default function FlashcardsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
   const [status, setStatus] = useState<IPopupStatus | null>(null);
+
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
+  
   const socketRef = useRef<WebSocket | null>(null);
+  const navigate = useNavigate();
 
   const fetchDecks = async () => {
     try {
@@ -79,6 +83,11 @@ export default function FlashcardsPage() {
     setDecks((prev) => 
       prev ? prev.map((deck) => deck.id === id ? {...deck, title, status, nrCards} : deck) : prev
     );
+  }
+
+  const handleStartSession = (deck: IDeckCard) => {
+    const mode: string = deck.lastUnanswered <= deck.nrCards ? "study" : "review";
+    navigate(`/flashcards/session?deckId=${deck.id}&mode=${mode}`);
   }
 
   const handleTitleRename = async (deckId: string, newTitle: string) => {
@@ -238,8 +247,7 @@ export default function FlashcardsPage() {
               <DeckCard 
                 key={deck.id}
                 deck={deck}
-                // TO-DO: Add functions here to complete the API
-                onStart={() => {}}
+                onStart={handleStartSession}
                 onRename={handleTitleRename}
                 onDelete={handleDeckDelete}
               />

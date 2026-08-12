@@ -11,7 +11,7 @@ import { formatLastAccessedDate } from "../utils/functions.ts";
 
 interface DeckCardProps {
   deck: IDeckCard;
-  onStart?: (id: string) => void;
+  onStart: (deck: IDeckCard) => void;
   onRename: (id: string, newTitle: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
@@ -28,6 +28,10 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
   const validDeck: boolean = deck.status !== "error";
 
   const layoutId: string = `deck-card-${deck.id}`;
+
+  const startSession = () => {
+    onStart(deck);
+  }
 
   const renameDeck = async (id: string, newTitle: string) => {
     try {
@@ -115,7 +119,7 @@ export default function DeckCard({ deck, onStart, onRename, onDelete }: DeckCard
                 deckStatusStyle={deckStatusStyle}
                 dueCards={dueCards}
                 onClose={() => setIsOpen(false)}
-                onStart={onStart}
+                onStart={startSession}
                 onRename={renameDeck}
                 onDelete={deleteDeck}
               />

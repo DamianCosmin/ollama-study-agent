@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { XIcon, MousePointerClickIcon, EyeIcon, ZapIcon, ThumbsUpIcon, ClockIcon, FrownIcon, ChevronRightIcon, ChevronLeftIcon, type LucideIcon } from "lucide-react";
+import { XIcon, MousePointerClickIcon, EyeIcon, ZapIcon, ThumbsUpIcon, ClockIcon, FrownIcon, ChevronRightIcon, ChevronLeftIcon, Loader2Icon, AlertCircleIcon, LayersIcon, type LucideIcon } from "lucide-react";
 
 import { CATEGORIES } from "../utils/subjects.ts";
 import { DIFFICULTY_STYLES } from "../utils/styles.ts";
-import { FlashcardFeedback, IDeckCard, IFlashcard, SessionMode } from "../utils/types.ts";
+import { API_BASE, FlashcardFeedback, IDeckCard, IFlashcard, SessionMode } from "../utils/types.ts";
+import { convertToIDeckCard } from "../utils/functions.ts";
 
 interface FeedbackOption {
   key: FlashcardFeedback;
@@ -33,7 +34,7 @@ const FEEDBACK_OPTIONS: FeedbackOption[] = [
   {
     key: "slow",
     label: "Slowly",
-    sublabel: "15–40s",
+    sublabel: "15-40s",
     icon: ClockIcon,
     style: "text-amber-300 bg-amber-300/10 outline-amber-300/30",
   },
@@ -46,38 +47,6 @@ const FEEDBACK_OPTIONS: FeedbackOption[] = [
   },
 ];
 
-const MOCK_DECK: IDeckCard = {
-  id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  documentId: "f47ac10b-58cc-4372-a567-0e02b2c3d478",
-  title: "Neural Networks",
-  difficulty: "hard",
-  category: "computer",
-  status: "success",
-  createdAt: new Date("2026-06-15T10:30:00"),
-  lastAccessed: new Date("2026-07-22T08:15:00"),
-  nrCards: 3,
-  lastUnanswered: 1,
-}
-
-// TO-DO: Replace with real fetched Flashcards
-function getMockFlashcards(deckId: string): IFlashcard[] {
-  const questions = [
-    ["What is the primary function of an activation function in an Artificial Neural Network?", "An activation function introduces non-linearity into the output of a neuron, allowing the network to learn complex, non-linear relationships between inputs and outputs."],
-    ["What does backpropagation compute?", "Backpropagation computes the gradient of the loss function with respect to each weight, allowing the network to update weights via gradient descent."],
-    ["What is overfitting?", "Overfitting occurs when a model learns the training data too closely, including its noise, and performs poorly on unseen data."],
-  ];
-
-  return questions.map(([question, answer], index) => ({
-    id: `${deckId}-${index}`,
-    deckId: MOCK_DECK.id,
-    index: index,
-    question: question,
-    answer: answer,
-    difficulty: MOCK_DECK.difficulty,
-    feedback: null,
-  }));
-}
-
 export default function FlashcardsSessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -85,19 +54,23 @@ export default function FlashcardsSessionPage() {
   const deckId: string = searchParams.get("deckId") ?? "";
   const mode: SessionMode = searchParams.get("mode") === "review" ? "review" : "study";
 
-  const [flashcards, setFlashcards] = useState<IFlashcard[]>(() => getMockFlashcards(deckId));
-  const [currentIndex, setCurrentIndex] = useState(mode === "study" ? MOCK_DECK.lastUnanswered : 1);
+  const [deck, setDeck] = useState<IDeckCard | null>(null);
+  const [flashcards, setFlashcards] = useState<IFlashcard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const [currentIndex, setCurrentIndex] = useState(1);
   const [isFlipped, setIsFlipped] = useState(false);
   const [direction, setDirection] = useState(1);
 
-  // TO-DO: Fetch deck data using the id from the params
-  const total: number = MOCK_DECK.nrCards;
-  const currentCard: IFlashcard = flashcards[currentIndex - 1];
+  const currentCard: IFlashcard | undefined = flashcards[currentIndex - 1];
+
+  const total: number = flashcards.length;
   const progressLabel: string = `${currentIndex} / ${total}`;
 
-  const Icon: LucideIcon = CATEGORIES[MOCK_DECK.category].icon ?? CATEGORIES.general.icon;
-  const iconColor: string = CATEGORIES[MOCK_DECK.category].color ?? CATEGORIES.general.color;
-  const difficultyTagStyle: string = DIFFICULTY_STYLES[currentCard?.difficulty?.toLowerCase()].tag ?? DIFFICULTY_STYLES.medium.tag;
+  const Icon: LucideIcon = deck ? CATEGORIES[deck.category].icon : CATEGORIES.general.icon;
+  const iconColor: string = deck ? CATEGORIES[deck.category].color : CATEGORIES.general.color;
+  const difficultyTagStyle: string = currentCard ? DIFFICULTY_STYLES[currentCard.difficulty.toLowerCase()].tag : DIFFICULTY_STYLES.medium.tag;
 
   const goToIndex = useCallback(
     (nextIndex: number, dir: number) => {
@@ -118,10 +91,11 @@ export default function FlashcardsSessionPage() {
 
   const handleFeedback = useCallback(
     (feedback: FlashcardFeedback) => {
-      if (mode !== "study" || currentCard.feedback) {
+      if (mode !== "study" || !currentCard || currentCard.feedback) {
         return;
       }
 
+      //  TO-DO: register feedback on backend
       setFlashcards((prev) =>
         prev.map((card) => (card.id === currentCard.id ? { ...card, feedback: feedback } : card))
       );
@@ -156,7 +130,7 @@ export default function FlashcardsSessionPage() {
         return;
       }
 
-      if (mode === "study" && isFlipped && !currentCard.feedback && ["1", "2", "3", "4"].includes(e.key)) {
+      if (mode === "study" && isFlipped && !currentCard?.feedback && ["1", "2", "3", "4"].includes(e.key)) {
         const option = FEEDBACK_OPTIONS[Number(e.key) - 1];
         if (option)
             handleFeedback(option.key);
@@ -176,10 +150,90 @@ export default function FlashcardsSessionPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mode, isFlipped, currentCard, currentIndex, goToIndex, handleFlip, handleFeedback, handleExit]);
 
+  useEffect(() => {
+    if (!deckId) {
+      navigate("/flashcards", {replace: true});
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchSession = async () => {
+      setIsLoading(true);
+      setLoadError(false);
+
+      try {
+        const [deckResponse, cardsResponse] = await Promise.all([
+          fetch(`${API_BASE}/decks/${deckId}`, {method: "GET"}),
+          fetch(`${API_BASE}/flashcards/${deckId}`, {method: "GET"}),
+        ]);
+
+        if (!deckResponse.ok || !cardsResponse.ok) {
+          throw new Error("Failed to load session");
+        }
+
+        const deckData = await deckResponse.json();
+        const cardsData = await cardsResponse.json();
+
+        if (cancelled) 
+          return;
+
+        const deck: IDeckCard = convertToIDeckCard(deckData.deck);
+        const flashcards: IFlashcard[] = cardsData.flashcards;
+
+        // Client-side UX guards against fake review / study mode from URL
+        if (mode === "review" && deck.lastUnanswered <= deck.nrCards) {
+          navigate(`/flashcards/session?deckId=${deckId}&mode=study`, {replace: true});
+          return;
+        }
+
+        if (mode === "study" && deck.lastUnanswered > deck.nrCards) {
+          navigate(`/flashcards/session?deckId=${deckId}&mode=review`, {replace: true});
+          return;
+        }
+
+        setDeck(deck);
+        setFlashcards(flashcards);
+        setCurrentIndex(mode === "study" ? Math.min(deck.lastUnanswered, flashcards.length || 1) : 1);
+      } catch (err) {
+        console.error("Failed to load session:", err);
+        if (!cancelled)
+          setLoadError(true);
+      } finally {
+        if (!cancelled)
+          setIsLoading(false);
+      }
+    }
+
+    fetchSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [deckId, mode, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-cyan-950/50 to-emerald-950/50 px-4">
+        <Loader2Icon className="size-8 animate-spin text-emerald-400/80" />
+        <span className="text-xl font-semibold text-zinc-300">Loading...</span>
+      </div>
+    );
+  }
+
+  if (loadError || !deck) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-cyan-950/50 to-emerald-950/50 px-4">
+        <AlertCircleIcon className="size-8 text-red-400/80" />
+        <span className="text-xl font-semibold text-zinc-300">Could not load this deck!</span>
+      </div>
+    );
+  }
+
   if (!currentCard) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-neutral-300">
-        No cards to display.
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-cyan-950/50 to-emerald-950/50 px-4">
+        <LayersIcon className="size-8 text-cyan-400/80" />
+        <span className="text-xl font-semibold text-zinc-300">No cards to display!</span>
       </div>
     );
   }

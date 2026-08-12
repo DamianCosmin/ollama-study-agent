@@ -208,6 +208,20 @@ async def get_decks(session: Session = Depends(get_session)):
         "decks": session.exec(statement).all()
     }
 
+@router.get("/api/decks/{deck_id}")
+async def get_deck(deck_id: uuid.UUID, session: Session = Depends(get_session)):
+    deck = session.get(Deck, deck_id)
+
+    if not deck:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Deck not found!"
+        )
+
+    return {
+        "deck": deck
+    }
+
 @router.patch("/api/decks/{deck_id}")
 async def rename_deck(deck_id: uuid.UUID, title_body: RenameDeckRequest, session: Session = Depends(get_session)):
     deck = session.get(Deck, deck_id)
