@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { XIcon, MousePointerClickIcon, EyeIcon, ZapIcon, ThumbsUpIcon, ClockIcon, FrownIcon, ChevronRightIcon, ChevronLeftIcon, Loader2Icon, AlertCircleIcon, LayersIcon, type LucideIcon } from "lucide-react";
 
 import { CATEGORIES } from "../utils/subjects.ts";
-import { DIFFICULTY_STYLES } from "../utils/styles.ts";
+import { DIFFICULTY_STYLES, SESSION_GRADIENT } from "../utils/styles.ts";
 import { API_BASE, FlashcardFeedback, IDeckCard, IFlashcard, SessionMode } from "../utils/types.ts";
 import { convertToIDeckCard } from "../utils/functions.ts";
 
@@ -213,27 +213,33 @@ export default function FlashcardsSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-cyan-950/50 to-emerald-950/50 px-4">
-        <Loader2Icon className="size-8 animate-spin text-emerald-400/80" />
-        <span className="text-xl font-semibold text-zinc-300">Loading...</span>
+      <div className={`flex min-h-screen w-full items-center justify-center ${SESSION_GRADIENT} px-4`}>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
+          <Loader2Icon className="size-8 animate-spin text-emerald-400/80" />
+          <span className="text-xl font-semibold text-zinc-300">Loading...</span>
+        </div>
       </div>
     );
   }
 
   if (loadError || !deck) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-cyan-950/50 to-emerald-950/50 px-4">
-        <AlertCircleIcon className="size-8 text-red-400/80" />
-        <span className="text-xl font-semibold text-zinc-300">Could not load this deck!</span>
+      <div className={`flex min-h-screen w-full items-center justify-center ${SESSION_GRADIENT} px-4`}>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
+          <AlertCircleIcon className="size-8 text-red-400/80" />
+          <span className="text-xl font-semibold text-zinc-300">Could not load this deck!</span>
+        </div>
       </div>
     );
   }
 
   if (!currentCard) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-cyan-950/50 to-emerald-950/50 px-4">
-        <LayersIcon className="size-8 text-cyan-400/80" />
-        <span className="text-xl font-semibold text-zinc-300">No cards to display!</span>
+      <div className={`flex min-h-screen w-full items-center justify-center ${SESSION_GRADIENT} px-4`}>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
+          <LayersIcon className="size-8 text-cyan-400/80" />
+          <span className="text-xl font-semibold text-zinc-300">No cards to display!</span>
+        </div>
       </div>
     );
   }
