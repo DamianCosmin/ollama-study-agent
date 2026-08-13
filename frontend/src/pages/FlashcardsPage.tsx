@@ -6,8 +6,8 @@ import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer from "../components/RecentAnswer.tsx";
 import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
-import StatusPopup from "../components/StatusPopup.tsx";
-import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard, IPopupStatus } from "../utils/types.ts";
+import { useStatus } from "../context/StatusContext.tsx";
+import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
 import { convertToIDeckCard } from "../utils/functions.ts";
 
 const RECENTLY_ANSWERED: IRecentAnswer[] = [
@@ -40,13 +40,13 @@ export default function FlashcardsPage() {
   const [decks, setDecks] = useState<IDeckCard[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
-  const [status, setStatus] = useState<IPopupStatus | null>(null);
 
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
   const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
   
   const socketRef = useRef<WebSocket | null>(null);
   const navigate = useNavigate();
+  const { showStatus } = useStatus();
 
   const fetchDecks = async () => {
     try {
@@ -66,9 +66,11 @@ export default function FlashcardsPage() {
         
         setDecks(decks);
       } else {
+        showStatus({text: "Failed to retrieve decks!", type: "error"});
         console.error("Error: Failed to retrieve decks!", data);
       }
     } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
     }
   }
@@ -111,14 +113,15 @@ export default function FlashcardsPage() {
         setDecks((prev) =>
           prev.map((deck) => (deck.id === deckId ? { ...deck, title: updatedTitle } : deck))
         );
-        setStatus({ text: "Deck renamed successfully!", type: "success" });
+
+        showStatus({text: "Deck renamed successfully!", type: "success"});
       } else {
+        showStatus({text: "Failed to rename the deck!", type: "error"});
         console.error("Error: Failed to rename deck!", data);
-        setStatus({ text: "Error: Failed to rename the deck!", type: "error" });
       }
     } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
-      setStatus({ text: "Error: Could not connect to the backend!", type: "error" });
     }
   }
 
@@ -133,14 +136,15 @@ export default function FlashcardsPage() {
       if (response.ok) {
         const deletedID: string = data.deckId;
         setDecks((prev) => prev.filter((deck) => deck.id !== deletedID));
-        setStatus({ text: "Deck was deleted successfully!", type: "success" });
+
+        showStatus({text: "Deck was deleted successfully!", type: "success"});
       } else {
+        showStatus({text: "Failed to delete the deck!", type: "error"});
         console.error("Error: Failed to delete deck!", data);
-        setStatus({ text: "Error: Failed to delete the deck!", type: "error" });
       }
     } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
-      setStatus({ text: "Error: Could not connect to the backend!", type: "error" });
     }
   };
 
@@ -289,11 +293,6 @@ export default function FlashcardsPage() {
           </div>
         </div>
       </div>
-
-      <StatusPopup
-        status={status}
-        onClearStatus={() => setStatus(null)}
-      />
     </div>
   );
 }

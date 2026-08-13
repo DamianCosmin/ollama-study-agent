@@ -3,9 +3,10 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon, FileTextIcon, LeafIcon, SparklesIcon, FlameIcon, LayersIcon, InfoIcon, type LucideIcon } from "lucide-react";
 
-import { API_BASE, ILibraryCard, DeckCardCount, DeckDifficulty, IDeckCard, IPopupStatus } from "../utils/types.ts";
+import { useStatus } from "../context/StatusContext.tsx";
+import { API_BASE, ILibraryCard, DeckCardCount, DeckDifficulty, IDeckCard } from "../utils/types.ts";
 import { convertToILibraryCard, convertToIDeckCard } from "../utils/functions.ts";
-import StatusPopup from "./StatusPopup.tsx";
+
 
 interface CreateDeckModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export default function CreateDeckModal({isOpen, onClose, onSubmit}: CreateDeckM
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<DeckDifficulty | null>(null);
   const [cardCount, setCardCount] = useState<DeckCardCount | null>(null);
-  const [status, setStatus] = useState<IPopupStatus | null>(null);
+  const { showStatus } = useStatus();
 
   const fetchDocuments = async () => {
     try {
@@ -52,10 +53,12 @@ export default function CreateDeckModal({isOpen, onClose, onSubmit}: CreateDeckM
 
         setDocuments(docs);
       } else {
-        setStatus({text: "Error: Failed to retrieve documents!", type: "error"});
+        showStatus({text: "Failed to retrieve documents!", type: "error"});
+        console.error("Error: Failed to retrieve documents!");
       }
     } catch (err) {
-      setStatus({text: "Error: Could not connect to the backend!", type: "error"});
+      showStatus({text: "Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
     }
   };
 
@@ -117,16 +120,14 @@ export default function CreateDeckModal({isOpen, onClose, onSubmit}: CreateDeckM
         onClose()
         onSubmit(deck);
       } else {
-        setStatus({text: "Error: Failed to create the deck!", type: "error"});
+        showStatus({text: "Failed to create the deck!", type: "error"});
+        console.error("Error: Failed to create the deck!");
       }
     } catch (err) {
-      setStatus({text: "Error: Could not connect to the backend!", type: "error"});
+      showStatus({text: "Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
     }
   };
-
-  const clearStatus = () => {
-    setStatus(null);
-  }
 
   if (typeof document === "undefined") {
     return null;
@@ -280,11 +281,6 @@ export default function CreateDeckModal({isOpen, onClose, onSubmit}: CreateDeckM
               </button>
             </div>
           </motion.div>
-
-          <StatusPopup
-            status={status}
-            onClearStatus={clearStatus}
-          />
         </div>
       )}
     </AnimatePresence>,

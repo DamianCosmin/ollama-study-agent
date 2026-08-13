@@ -3,9 +3,9 @@ import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
 import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon } from "lucide-react";
 
-import { ILibraryCard, LibraryCardTag, IPopupStatus } from "../utils/types.ts";
 import LibraryCardModal from "../components/LibraryCardModal.tsx";
-import StatusPopup from "./StatusPopup.tsx";
+import { useStatus } from "../context/StatusContext.tsx";
+import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
 
 const statusAttributes: Record<string, {tag: LibraryCardTag, icon: string; ring: string; dot: string}> = {
   success: {
@@ -46,7 +46,7 @@ export interface LibraryCardProps {
 export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [status, setStatus] = useState<IPopupStatus | null>(null);
+  const { showStatus } = useStatus();
 
   const Icon: LucideIcon = card.status === "error" ? FileWarningIcon : FileTextIcon;
   const styles: {tag: LibraryCardTag, icon: string; ring: string; dot: string} = statusAttributes[card.status] ?? statusAttributes.error;
@@ -59,16 +59,12 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
       await onDeleteCard(card.id);
     } catch (err) {
       console.error(`Card deletion failed for ${card.title}`, err);
-      setStatus({text: "Something went wrong. Please try again!", type: "error"});
+      showStatus({text: "Something went wrong. Please try again!", type: "error"});
     } finally {
       setIsModalOpen(false);
       setIsDeleting(false);
     }
   };
-
-  const clearStatus = () => {
-    setStatus(null);
-  }
 
   return (
     <>
@@ -130,11 +126,6 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
             document.body
           )}
       </div>
-
-      <StatusPopup 
-        status={status}
-        onClearStatus={clearStatus}
-      />
     </>
   );
 }

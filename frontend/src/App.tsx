@@ -5,19 +5,22 @@ import LibraryPage from "./pages/LibraryPage.tsx";
 import FlashcardsPage from "./pages/FlashcardsPage.tsx";
 import FlashcardsSessionPage from "./pages/FlashcardsSessionPage.tsx";
 import TutorPage from "./pages/TutorPage.tsx";
+import { StatusProvider } from "./context/StatusContext.tsx";
 
 function App() {
   return (
-    <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/library" element={<LibraryPage />} />
-        <Route path="/flashcards" element={<FlashcardsPage />} />
-        <Route path="/tutor" element={<TutorPage />} />
-      </Route>
+    <StatusProvider>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/library" element={<LibraryPage />} />
+          <Route path="/flashcards" element={<FlashcardsPage />} />
+          <Route path="/tutor" element={<TutorPage />} />
+        </Route>
 
-      <Route path="/flashcards/session" element={<FlashcardsSessionPage />} />
-    </Routes>
+        <Route path="/flashcards/session" element={<FlashcardsSessionPage />} />
+      </Routes>
+    </StatusProvider>
   );
 }
 

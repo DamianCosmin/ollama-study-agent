@@ -1,18 +1,18 @@
 import { useState, useRef, ChangeEvent } from "react";
 import { UploadCloudIcon } from "lucide-react";
 
-import { API_BASE, ILibraryCard, IPopupStatus } from "../utils/types.ts";
+import { useStatus } from "../context/StatusContext.tsx";
+import { API_BASE, ILibraryCard } from "../utils/types.ts";
 import { convertToILibraryCard } from "../utils/functions.ts";
-import StatusPopup from "./StatusPopup.tsx";
 
 interface UploadButtonProps {
   onUpload: (document: ILibraryCard) => void;
 }
 
 export default function UploadButton({ onUpload }: UploadButtonProps) {
-  const [status, setStatus] = useState<IPopupStatus | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const hiddenInput = useRef<HTMLInputElement>(null);
+  const { showStatus } = useStatus();
 
   const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20 MB
   const ALLOWED_TYPES = [
@@ -23,10 +23,6 @@ export default function UploadButton({ onUpload }: UploadButtonProps) {
 
   const handleClick = () => {
     hiddenInput.current?.click();
-  }
-
-  const clearStatus = () => {
-    setStatus(null);
   }
 
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -42,12 +38,12 @@ export default function UploadButton({ onUpload }: UploadButtonProps) {
     }
 
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setStatus({text: "Error: File exceeds 20 MB limit!", type: "error"});
+      showStatus({text: "Error: File exceeds 20 MB limit!", type: "error"});
       return;
     }
 
     if (!ALLOWED_TYPES.includes(selectedFile.type)) {
-      setStatus({text: "Error: Only PDF, DOCX, and PPTX are allowed!", type: "error"});
+      showStatus({text: "Error: Only PDF, DOCX, and PPTX are allowed!", type: "error"});
       return;
     }
 
@@ -66,13 +62,15 @@ export default function UploadButton({ onUpload }: UploadButtonProps) {
 
       if (response.ok) {
         const document: ILibraryCard = convertToILibraryCard(data.document);
-        setStatus({text: `Success! Uploaded ${document.title}`, type: "success"});
+        showStatus({text: `Success! Uploaded ${document.title}`, type: "success"});
         onUpload(document);
       } else {
-        setStatus({text: "Error: Upload failed!", type: "error"});
+        showStatus({text: "Error: Upload failed!", type: "error"});
+        console.error("Error: Upload failed!");
       }
     } catch (err) {
-      setStatus({text: "Error: Could not connect to the backend!", type: "error"});
+      showStatus({text: "Error: Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
     } finally {
       setIsUploading(false);
     }
@@ -97,11 +95,6 @@ export default function UploadButton({ onUpload }: UploadButtonProps) {
           Upload
         <span className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/40 to-white/0" />
       </button>
-
-      <StatusPopup 
-        status={status}
-        onClearStatus={clearStatus}
-      />
     </>
   );
 }
