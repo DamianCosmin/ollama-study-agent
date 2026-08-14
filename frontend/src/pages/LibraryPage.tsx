@@ -3,12 +3,14 @@ import { SearchIcon, SlidersHorizontalIcon } from "lucide-react";
 import LibraryCard from "../components/LibraryCard.tsx";
 import UploadButton from "../components/UploadButton.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
+import { useStatus } from "../context/StatusContext.tsx";
 import { API_BASE, WS_BASE, ILibraryCard } from "../utils/types.ts";
 import { convertToILibraryCard } from "../utils/functions.ts";
 
 export default function LibraryPage() {
   const [documents, setDocuments] = useState<ILibraryCard[] | null>([]);
   const socketRef = useRef<WebSocket | null>(null);
+  const { showStatus } = useStatus();
 
   const fetchDocuments = async () => {
     try {
@@ -28,9 +30,11 @@ export default function LibraryPage() {
 
         setDocuments(docs);
       } else {
+        showStatus({text: "Failed to retrieve documents!", type: "error"});
         console.error("Error: Failed to retrieve documents!", data);
       }
     } catch (err) {
+      showStatus({text: "Could not connect to backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
     }
   };
@@ -49,7 +53,9 @@ export default function LibraryPage() {
     if (response.ok) {
       const deletedID: string = data.documentId;
       setDocuments((prev) => prev ? prev.filter((doc) => doc.id !== deletedID) : []);
+      showStatus({text: "Document was deleted successfully!", type: "success"});
     } else {
+      showStatus({text: "Failed to delete document!", type: "error"});
       console.error("Error: Failed to delete document!", data);
       throw new Error(data.detail ?? "Failed to delete document!");
     }

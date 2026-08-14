@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon, MousePointerClickIcon, EyeIcon, ZapIcon, ThumbsUpIcon, ClockIcon, FrownIcon, ChevronRightIcon, ChevronLeftIcon, Loader2Icon, AlertCircleIcon, LayersIcon, type LucideIcon } from "lucide-react";
 
+import { useStatus } from "../context/StatusContext.tsx";
 import { CATEGORIES } from "../utils/subjects.ts";
 import { DIFFICULTY_STYLES, SESSION_GRADIENT } from "../utils/styles.ts";
 import { API_BASE, FlashcardFeedback, IDeckCard, IFlashcard, SessionMode } from "../utils/types.ts";
@@ -50,6 +51,7 @@ const FEEDBACK_OPTIONS: FeedbackOption[] = [
 export default function FlashcardsSessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { showStatus } = useStatus();
 
   const deckId: string = searchParams.get("deckId") ?? "";
   const mode: SessionMode = searchParams.get("mode") === "review" ? "review" : "study";
@@ -196,6 +198,7 @@ export default function FlashcardsSessionPage() {
         setFlashcards(flashcards);
         setCurrentIndex(mode === "study" ? Math.min(deck.lastUnanswered, flashcards.length || 1) : 1);
       } catch (err) {
+        showStatus({text: "Failed to load session!", type: "error"});
         console.error("Failed to load session:", err);
         if (!cancelled)
           setLoadError(true);
