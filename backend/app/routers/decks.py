@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, WebSocket, WebSocketDisconnect
 from sqlmodel import Session, select, delete
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, Optional
+from datetime import datetime
 import asyncio
 import uuid
 import numpy as np
@@ -21,8 +22,9 @@ class CreateDeckRequest(BaseModel):
     difficulty: Literal["easy", "medium", "hard"]
     cardCount: Literal[15, 25, 40]
 
-class RenameDeckRequest(BaseModel):
-    newTitle: str
+class UpdateRequest(BaseModel):
+    title: Optional[str] = None
+    last_accessed: Optional[datetime] = None
 
 # Generate flashcards from every chunk concurrently
 async def generate_flashcards(chunks: list[dict], difficulty: str):
@@ -223,7 +225,7 @@ async def get_deck(deck_id: uuid.UUID, session: Session = Depends(get_session)):
     }
 
 @router.patch("/api/decks/{deck_id}")
-async def rename_deck(deck_id: uuid.UUID, title_body: RenameDeckRequest, session: Session = Depends(get_session)):
+async def update_deck(deck_id: uuid.UUID, update_body: UpdateRequest, session: Session = Depends(get_session)):
     deck = session.get(Deck, deck_id)
 
     if not deck:
@@ -232,7 +234,8 @@ async def rename_deck(deck_id: uuid.UUID, title_body: RenameDeckRequest, session
             detail="Deck not found!"
         )
 
-    deck.title = title_body.newTitle
+    update_data = update_body.model_dump(exclude_unset=True)
+    deck.sqlmodel_update(update_data)
 
     session.commit()
     session.refresh(deck)

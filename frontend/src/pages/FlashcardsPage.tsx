@@ -62,7 +62,7 @@ export default function FlashcardsPage() {
         // Converts string dates from database into Date objects to match IDeckCard definition
         const decks: IDeckCard[] = rawData
           .map((deck) => convertToIDeckCard(deck))
-          .sort((deckA, deckB) => deckB.createdAt.getTime() - deckA.createdAt.getTime());
+          .sort((deckA, deckB) => deckB.lastAccessed.getTime() - deckA.lastAccessed.getTime());
         
         setDecks(decks);
       } else {
@@ -72,6 +72,36 @@ export default function FlashcardsPage() {
     } catch (err) {
       showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
+    }
+  }
+
+  const updateAccessDate = async (deckId: string): Promise<boolean> => {
+    try {
+      const dateBody = {
+        "last_accessed": new Date()
+      }
+
+      const response = await fetch(`${API_BASE}/decks/${deckId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dateBody),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return true;
+      } else {
+        showStatus({text: "Failed to update deck date!", type: "error"});
+        console.error("Error: Failed to update deck date!", data);
+        return false;
+      }
+    } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
+      return false;
     }
   }
 
@@ -87,15 +117,18 @@ export default function FlashcardsPage() {
     );
   }
 
-  const handleStartSession = (deck: IDeckCard) => {
+  const handleStartSession = async (deck: IDeckCard) => {
     const mode: string = deck.lastUnanswered <= deck.nrCards ? "study" : "review";
-    navigate(`/flashcards/session?deckId=${deck.id}&mode=${mode}`);
+    const success: boolean = await updateAccessDate(deck.id);
+
+    if (success)
+      navigate(`/flashcards/session?deckId=${deck.id}&mode=${mode}`);
   }
 
   const handleTitleRename = async (deckId: string, newTitle: string) => {
     try {
       const titleBody = {
-        "newTitle": newTitle
+        "title": newTitle
       }
 
       const response = await fetch(`${API_BASE}/decks/${deckId}`, {
