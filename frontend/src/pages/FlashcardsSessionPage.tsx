@@ -74,6 +74,38 @@ export default function FlashcardsSessionPage() {
   const iconColor: string = deck ? CATEGORIES[deck.category].color : CATEGORIES.general.color;
   const difficultyTagStyle: string = currentCard ? DIFFICULTY_STYLES[currentCard.difficulty.toLowerCase()].tag : DIFFICULTY_STYLES.medium.tag;
 
+  const submitFeedback = async (card: IFlashcard, feedback: FlashcardFeedback) => {
+    try {
+      const feedbackBody = {
+        "feedback": feedback
+      }
+
+      const response = await fetch(`${API_BASE}/flashcards/${card.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackBody),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const updatedFlashcard: IFlashcard = data.flashcard;
+
+        setFlashcards((prev) =>
+          prev.map((card) => (card.id === updatedFlashcard.id ? updatedFlashcard : card))
+        );
+      } else {
+        showStatus({text: "Failed to save your answer!", type: "error"});
+        console.error("Error: Failed to submit feedback!", data);
+      }
+    } catch (err) {
+      showStatus({text: "Error: Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
+    }
+  }
+
   const goToIndex = useCallback(
     (nextIndex: number, dir: number) => {
       if (nextIndex < 1 || nextIndex > total) {
@@ -92,17 +124,14 @@ export default function FlashcardsSessionPage() {
   }, []);
 
   const handleFeedback = useCallback(
-    (feedback: FlashcardFeedback) => {
+    async (feedback: FlashcardFeedback) => {
       if (mode !== "study" || !currentCard || currentCard.feedback) {
         return;
       }
 
-      //  TO-DO: register feedback on backend
-      setFlashcards((prev) =>
-        prev.map((card) => (card.id === currentCard.id ? { ...card, feedback: feedback } : card))
-      );
+      await submitFeedback(currentCard, feedback);
     },
-    [mode, currentCard]
+    [mode, currentCard, showStatus]
   );
 
   const handleContinue = useCallback(() => {
