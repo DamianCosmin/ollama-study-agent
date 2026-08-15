@@ -8,7 +8,7 @@ import uuid
 import numpy as np
 
 from app.db import get_session, get_session_context
-from app.models import Document, Deck, Flashcard
+from app.models import Document, Deck, Flashcard, AnswerLog
 from app.services.chromadb_storage import collection
 from app.services.ollama_service import generate_cards_from_chunk, generate_deck_title
 from app.services.chunking import select_chunks
@@ -255,6 +255,9 @@ async def delete_deck(deck_id: uuid.UUID, session: Session = Depends(get_session
         )
 
     statement = delete(Flashcard).where(Flashcard.deck_id == deck_id)
+    session.exec(statement)
+
+    statement = delete(AnswerLog).where(AnswerLog.deck_id == deck_id)
     session.exec(statement)
 
     session.delete(deck)

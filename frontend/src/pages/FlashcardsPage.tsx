@@ -126,7 +126,7 @@ export default function FlashcardsPage() {
 
         setRecentAnswers((prev) => 
           prev.map((ans) => (ans.deckId === deckId) ? {...ans, deckTitle: updatedTitle} : ans)
-        )
+        );
 
         showStatus({text: "Deck renamed successfully!", type: "success"});
       } else {
@@ -150,6 +150,8 @@ export default function FlashcardsPage() {
       if (response.ok) {
         const deletedID: string = data.deckId;
         setDecks((prev) => prev.filter((deck) => deck.id !== deletedID));
+
+        await fetchRecentAnswers();
 
         showStatus({text: "Deck was deleted successfully!", type: "success"});
       } else {

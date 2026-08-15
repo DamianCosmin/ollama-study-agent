@@ -4,7 +4,7 @@ import os
 import shutil
 import uuid
 
-from app.models import Document, Deck, Flashcard
+from app.models import Document, Deck, Flashcard, AnswerLog
 from app.db import get_session
 from app.websockets import documents_ws_manager
 from app.services import vectorize_document
@@ -123,12 +123,15 @@ async def delete_document(document_id: uuid.UUID, session: Session = Depends(get
     except Exception as e:
         print(f"ChromaDB cleanup failed for {str(document_id)}: {str(e)}")
 
-    # Delete related flashcards
+    # Delete related flashcards & logs
     statement = select(Deck.id).where(Deck.document_id == document_id)
     related_deck_ids = session.exec(statement).all()
 
     if related_deck_ids:
         statement = delete(Flashcard).where(Flashcard.deck_id.in_(related_deck_ids))
+        session.exec(statement)
+
+        statement = delete(AnswerLog).where(AnswerLog.deck_id.in_(related_deck_ids))
         session.exec(statement)
 
     # Delete related decks
