@@ -8,36 +8,13 @@ import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
 import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
-import { convertToIDeckCard } from "../utils/functions.ts";
-
-const RECENTLY_ANSWERED: IRecentAnswer[] = [
-  {
-    id: 1,
-    question: "What is backpropagation?",
-    deckName: "Neural Networks",
-    answerDate: new Date("2026-07-21T13:05:48"),
-    difficulty: "easy",
-  },
-  {
-    id: 2,
-    question: "Integral of sec(x)",
-    deckName: "Calculus II",
-    answerDate: new Date("2026-07-21T12:58:48"),
-    difficulty: "medium",
-  },
-  {
-    id: 3,
-    question: "Define working memory by creating a story about a long long question",
-    deckName: "Cognitive Psych",
-    answerDate: new Date("2026-07-21T12:10:48"),
-    difficulty: "hard",
-  },
-];
+import { convertToIDeckCard, convertToIRecentAnswer } from "../utils/functions.ts";
 
 const DAILY_TARGET = { completed: 25, target: 40 };
 
 export default function FlashcardsPage() {
   const [decks, setDecks] = useState<IDeckCard[]>([]);
+  const [recentAnswers, setRecentAnswers] = useState<IRecentAnswer[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
 
@@ -144,8 +121,12 @@ export default function FlashcardsPage() {
       if (response.ok) {
         const updatedTitle: string = data.title ?? newTitle;
         setDecks((prev) =>
-          prev.map((deck) => (deck.id === deckId ? { ...deck, title: updatedTitle } : deck))
+          prev.map((deck) => (deck.id === deckId ? {...deck, title: updatedTitle} : deck))
         );
+
+        setRecentAnswers((prev) => 
+          prev.map((ans) => (ans.deckId === deckId) ? {...ans, deckTitle: updatedTitle} : ans)
+        )
 
         showStatus({text: "Deck renamed successfully!", type: "success"});
       } else {
@@ -181,8 +162,34 @@ export default function FlashcardsPage() {
     }
   };
 
+  const fetchRecentAnswers = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/flashcards/recent`, {
+        method: "GET"
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const rawData = data.answers as Array<Omit<IRecentAnswer, "answerDate"> & {answerDate: string}>;
+
+        // Converts string date from database into Date object to match IRecentAnswer definition
+        const answers: IRecentAnswer[] = rawData.map((ans) => convertToIRecentAnswer(ans));
+        
+        setRecentAnswers(answers);
+      } else {
+        showStatus({text: "Failed to retrieve recent answers!", type: "error"});
+        console.error("Error: Failed to retrieve recent answers!", data);
+      }
+    } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
+    }
+  }
+
   useEffect(() => {
     fetchDecks();
+    fetchRecentAnswers();
   }, []);
 
   useEffect(() => {
@@ -297,7 +304,7 @@ export default function FlashcardsPage() {
           <div className="flex flex-col gap-4 rounded-xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
             <span className="text-xs font-semibold tracking-wide text-neutral-300">Recently Answered</span>
             <div className="flex flex-col gap-3">
-              {RECENTLY_ANSWERED.map((ans) => (
+              {recentAnswers.map((ans) => (
                 <RecentAnswer key={ans.id} answer={ans} />
               ))}
             </div>

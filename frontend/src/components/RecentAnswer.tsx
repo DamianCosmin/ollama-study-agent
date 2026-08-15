@@ -43,7 +43,7 @@ export default function RecentAnswer({ answer }: RecentAnswerProps) {
         </span>
       </div>
 
-      <span className="text-xs leading-4 text-neutral-300">{`${answer.deckName} • ${formatAnswerDate(answer.answerDate)}`}</span>
+      <span className="text-xs leading-4 text-neutral-300">{`${answer.deckTitle} • ${formatAnswerDate(answer.answerDate)}`}</span>
     </div>
   );
 }

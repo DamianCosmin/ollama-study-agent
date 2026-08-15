@@ -1,4 +1,4 @@
-import { IDeckCard, ILibraryCard } from "./types";
+import { IDeckCard, ILibraryCard, IRecentAnswer } from "./types";
 
 export function formatLastAccessedDate(date: Date): string {
   const now = new Date();
@@ -51,4 +51,18 @@ export function convertToIDeckCard(rawDeck: Omit<IDeckCard, "createdAt" | "lastA
   }
 
   return newDeck;
+}
+
+export function convertToIRecentAnswer(rawAnswer: Omit<IRecentAnswer, "answerDate"> & {answerDate: string}): IRecentAnswer {
+  if (!rawAnswer) {
+    throw new Error("Error: Convertion to IRecentAnswer failed!"); 
+  }
+
+  const isoString: string = rawAnswer.answerDate ? rawAnswer.answerDate.replace(" ", "T") + "Z" : "";
+  const newAnswer: IRecentAnswer = {
+    ...rawAnswer,
+    answerDate: new Date(isoString),
+  }
+
+  return newAnswer;
 }

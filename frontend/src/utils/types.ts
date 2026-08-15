@@ -50,10 +50,12 @@ export interface ILibraryCard {
 // Recent answers
 export interface IRecentAnswer {
   id: number;
+  flashcardId: string;
+  deckId: string;
   question: string;
-  deckName: string;
-  answerDate: Date;
+  deckTitle: string;
   difficulty: string;
+  answerDate: Date;
 };
 
 // Pop-up
