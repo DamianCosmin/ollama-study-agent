@@ -76,18 +76,26 @@ async def submit_card_feedback(flashcard_id: uuid.UUID, feedback_body: FeedbackB
             detail=f"Deck related to flashcard {str(flashcard_id)} not found!"
         )
 
-    flashcard.feedback = str(feedback_body.feedback)
-    deck.last_unanswered += 1
-    deck.last_accessed = datetime.now(timezone.utc)
+    try:
+        flashcard.feedback = str(feedback_body.feedback)
+        deck.last_unanswered += 1
+        deck.last_accessed = datetime.now(timezone.utc)
 
-    log = AnswerLog(
-        flashcard_id=flashcard_id,
-        deck_id=deck.id,
-    )
+        log = AnswerLog(
+            flashcard_id=flashcard_id,
+            deck_id=deck.id,
+        )
 
-    session.add(log)
-    session.commit()
-    session.refresh(flashcard)
+        session.add(log)
+        session.commit()
+        session.refresh(flashcard)
+    except Exception as e:
+        session.rollback()
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to submit feedback!"
+        ) from e
 
     return {
         "flashcard": flashcard

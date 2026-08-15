@@ -67,9 +67,17 @@ async def upload_document(
         category="general",
     )
 
-    session.add(document)
-    session.commit()
-    session.refresh(document)
+    try:
+        session.add(document)
+        session.commit()
+        session.refresh(document)
+    except Exception as e:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save document entity!"
+        ) from e
 
     background_tasks.add_task(vectorize_document, document.id, file_path)
 
@@ -123,23 +131,31 @@ async def delete_document(document_id: uuid.UUID, session: Session = Depends(get
     except Exception as e:
         print(f"ChromaDB cleanup failed for {str(document_id)}: {str(e)}")
 
-    # Delete related flashcards & logs
-    statement = select(Deck.id).where(Deck.document_id == document_id)
-    related_deck_ids = session.exec(statement).all()
+    try:
+        # Delete related flashcards & logs
+        statement = select(Deck.id).where(Deck.document_id == document_id)
+        related_deck_ids = session.exec(statement).all()
 
-    if related_deck_ids:
-        statement = delete(Flashcard).where(Flashcard.deck_id.in_(related_deck_ids))
+        if related_deck_ids:
+            statement = delete(Flashcard).where(Flashcard.deck_id.in_(related_deck_ids))
+            session.exec(statement)
+
+            statement = delete(AnswerLog).where(AnswerLog.deck_id.in_(related_deck_ids))
+            session.exec(statement)
+
+        # Delete related decks
+        statement = delete(Deck).where(Deck.document_id == document_id)
         session.exec(statement)
-
-        statement = delete(AnswerLog).where(AnswerLog.deck_id.in_(related_deck_ids))
-        session.exec(statement)
-
-    # Delete related decks
-    statement = delete(Deck).where(Deck.document_id == document_id)
-    session.exec(statement)
-    
-    session.delete(document)
-    session.commit()
+        
+        session.delete(document)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete document and related data!"
+        ) from e
 
     return {
         "documentId": document_id

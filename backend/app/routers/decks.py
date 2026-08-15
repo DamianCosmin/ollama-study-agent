@@ -136,25 +136,28 @@ async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID, 
         await mark_deck_failed(deck_id)
 
 async def mark_deck_failed(deck_id: uuid.UUID):
-    with get_session_context() as session:
-        deck = session.get(Deck, deck_id)
-        if deck:
-            deck.title = "Failed"
-            deck.status = "error"
-            session.add(deck)
-            session.commit()
-            session.refresh(deck)
+    try:
+        with get_session_context() as session:
+            deck = session.get(Deck, deck_id)
+            if deck:
+                deck.title = "Failed"
+                deck.status = "error"
+                session.add(deck)
+                session.commit()
+                session.refresh(deck)
 
-            updated_deck = {
-                "id": str(deck_id),
-                "title": deck.title,
-                "status": deck.status,
-                "nrCards": deck.nr_cards
-            }
-        else:
-            return
+                updated_deck = {
+                    "id": str(deck_id),
+                    "title": deck.title,
+                    "status": deck.status,
+                    "nrCards": deck.nr_cards
+                }
+            else:
+                return
 
-    await safe_broadcast(updated_deck)
+        await safe_broadcast(updated_deck)
+    except Exception as e:
+        print(f"Failed to mark deck {deck_id} as failed: {e}")
 
 async def safe_broadcast(payload: dict):
     try:
@@ -192,9 +195,17 @@ async def create_deck(
         status="processing",
     )
 
-    session.add(deck)
-    session.commit()
-    session.refresh(deck)
+    try:
+        session.add(deck)
+        session.commit()
+        session.refresh(deck)
+    except Exception as e:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create deck!"
+        ) from e
 
     background_tasks.add_task(run_deck_generation, deck_info, deck.id, deck.category)
 
@@ -234,11 +245,19 @@ async def update_deck(deck_id: uuid.UUID, update_body: UpdateRequest, session: S
             detail="Deck not found!"
         )
 
-    update_data = update_body.model_dump(exclude_unset=True)
-    deck.sqlmodel_update(update_data)
+    try:
+        update_data = update_body.model_dump(exclude_unset=True)
+        deck.sqlmodel_update(update_data)
 
-    session.commit()
-    session.refresh(deck)
+        session.commit()
+        session.refresh(deck)
+    except Exception as e:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update deck!"
+        ) from e
 
     return {
         "deck": deck
@@ -254,14 +273,22 @@ async def delete_deck(deck_id: uuid.UUID, session: Session = Depends(get_session
             detail="Deck not found!"
         )
 
-    statement = delete(Flashcard).where(Flashcard.deck_id == deck_id)
-    session.exec(statement)
+    try:
+        statement = delete(Flashcard).where(Flashcard.deck_id == deck_id)
+        session.exec(statement)
 
-    statement = delete(AnswerLog).where(AnswerLog.deck_id == deck_id)
-    session.exec(statement)
+        statement = delete(AnswerLog).where(AnswerLog.deck_id == deck_id)
+        session.exec(statement)
 
-    session.delete(deck)
-    session.commit()
+        session.delete(deck)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete deck!"
+        ) from e
 
     return {
         "deckId": deck_id
