@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { XIcon, MousePointerClickIcon, EyeIcon, ZapIcon, ThumbsUpIcon, ClockIcon, FrownIcon, ChevronRightIcon, ChevronLeftIcon, Loader2Icon, AlertCircleIcon, LayersIcon, type LucideIcon } from "lucide-react";
 
 import { useStatus } from "../context/StatusContext.tsx";
+import { useUpdateAccessDate } from "../hooks/useUpdateAccessDate.ts";
 import { CATEGORIES } from "../utils/subjects.ts";
 import { DIFFICULTY_STYLES, SESSION_GRADIENT } from "../utils/styles.ts";
 import { API_BASE, FlashcardFeedback, IDeckCard, IFlashcard, SessionMode } from "../utils/types.ts";
@@ -52,6 +53,7 @@ export default function FlashcardsSessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showStatus } = useStatus();
+  const updateAccessDate = useUpdateAccessDate();
 
   const deckId: string = searchParams.get("deckId") ?? "";
   const mode: SessionMode = searchParams.get("mode") === "review" ? "review" : "study";
@@ -143,9 +145,12 @@ export default function FlashcardsSessionPage() {
     goToIndex(currentIndex + 1, 1);
   }, [currentIndex, total, goToIndex, navigate]);
 
-  const handleExit = useCallback(() => {
+  const handleExit = useCallback(async () => {
+    if (deckId)
+      await updateAccessDate(deckId);
+
     navigate("/flashcards");
-  }, [navigate]);
+  }, [deckId, updateAccessDate, navigate]);
 
   // Keyboard shortcuts: Space / Enter to flip, 1-4 for feedback, Arrows to navigate in review mode
   useEffect(() => {

@@ -7,6 +7,7 @@ import RecentAnswer from "../components/RecentAnswer.tsx";
 import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
+import { useUpdateAccessDate } from "../hooks/useUpdateAccessDate.ts";
 import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
 import { convertToIDeckCard, convertToIRecentAnswer } from "../utils/functions.ts";
 
@@ -24,6 +25,7 @@ export default function FlashcardsPage() {
   const socketRef = useRef<WebSocket | null>(null);
   const navigate = useNavigate();
   const { showStatus } = useStatus();
+  const updateAccessDate = useUpdateAccessDate();
 
   const fetchDecks = async () => {
     try {
@@ -49,36 +51,6 @@ export default function FlashcardsPage() {
     } catch (err) {
       showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
-    }
-  }
-
-  const updateAccessDate = async (deckId: string): Promise<boolean> => {
-    try {
-      const dateBody = {
-        "last_accessed": new Date()
-      }
-
-      const response = await fetch(`${API_BASE}/decks/${deckId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dateBody),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        return true;
-      } else {
-        showStatus({text: "Failed to update deck date!", type: "error"});
-        console.error("Error: Failed to update deck date!", data);
-        return false;
-      }
-    } catch (err) {
-      showStatus({text: "Could not connect to the backend!", type: "error"});
-      console.error("Error: Could not connect to backend!", err);
-      return false;
     }
   }
 
