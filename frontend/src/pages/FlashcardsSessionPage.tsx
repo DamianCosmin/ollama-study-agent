@@ -357,6 +357,9 @@ export default function FlashcardsSessionPage() {
 
                 {/* Back face */}
                 <div
+                  onClick={handleFlip}
+                  role="button"
+                  tabIndex={0}
                   style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                   className="absolute inset-0 flex flex-col rounded-2xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:p-7"
                 >
@@ -388,7 +391,10 @@ export default function FlashcardsSessionPage() {
                           {FEEDBACK_OPTIONS.map((option, idx) => (
                             <button
                               key={option.key}
-                              onClick={() => handleFeedback(option.key)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFeedback(option.key);
+                              }}
                               className={`flex w-full min-w-0 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 outline outline-1 outline-offset-[-1px] transition-colors hover:bg-white/5 ${option.style}`}
                             >
                               <option.icon className="size-3.5 shrink-0" />
@@ -406,7 +412,10 @@ export default function FlashcardsSessionPage() {
                     {mode === "study" && currentCard.feedback && (
                       <div className="flex justify-center">
                         <button
-                          onClick={handleContinue}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleContinue();
+                          }}
                           className="flex items-center gap-2 rounded-lg bg-cyan-300/10 px-5 py-2 text-sm font-medium text-cyan-300 outline outline-1 outline-offset-[-1px] outline-cyan-300/30 transition-colors hover:bg-cyan-300/20"
                         >
                           {currentIndex + 1 > total ? "Finish session" : "Continue"}
@@ -418,7 +427,10 @@ export default function FlashcardsSessionPage() {
                     {mode === "review" && (
                       <div className="flex justify-center gap-3 sm:hidden">
                         <button
-                          onClick={() => goToIndex(currentIndex - 1, -1)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            goToIndex(currentIndex - 1, -1);
+                          }}
                           disabled={currentIndex === 1}
                           className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 disabled:opacity-30"
                         >
@@ -427,7 +439,10 @@ export default function FlashcardsSessionPage() {
                         </button>
 
                         <button
-                          onClick={() => goToIndex(currentIndex + 1, 1)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            goToIndex(currentIndex + 1, 1);
+                          }}
                           disabled={currentIndex === total}
                           className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 disabled:opacity-30"
                         >
