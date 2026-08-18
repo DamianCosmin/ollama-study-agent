@@ -36,9 +36,7 @@ def categorize_document(extracted_text: str):
                     "content": prompt
                 }
             ],
-            options={
-                "temperature": 0
-            }
+            options={"temperature": 0}
         )
 
         category = response["message"]["content"].strip().lower()
@@ -72,7 +70,8 @@ async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_
     response = await ollama_async_client.generate(
         model='qwen2.5:7b-instruct',
         prompt=prompt,
-        stream=False
+        stream=False,
+        options={"num_predict": 400, "temperature": 0.2}
     )
 
     try:
@@ -102,7 +101,8 @@ async def generate_deck_title(cards: list[dict], category: str):
     response = await ollama_async_client.generate(
         model='qwen2.5:7b-instruct',
         prompt=prompt,
-        stream=False
+        stream=False,
+        options={"num_predict": 400, "temperature": 0.2}
     )
     
     title = response["response"].strip().capitalize()

@@ -26,18 +26,24 @@ class UpdateRequest(BaseModel):
     title: Optional[str] = None
     last_accessed: Optional[datetime] = None
 
-# Generate flashcards from every chunk concurrently
+# Generate flashcards from every chunk
 async def generate_flashcards(chunks: list[dict], difficulty: str):
-    tasks = [generate_cards_from_chunk(chunk["text"], difficulty, 2) for chunk in chunks]
-    results = await asyncio.gather(*tasks)
-    return [card for chunk_cards in results for card in chunk_cards]
+    all_cards = []
+    for chunk in chunks:
+        cards = await generate_cards_from_chunk(chunk["text"], difficulty, 2)
+        all_cards.extend(cards)
+        await asyncio.sleep(0.5)
+    return all_cards
 
 async def deduplicate_cards(cards: list[dict], similarity_threshold: float = 0.8) -> list[dict]:
     if not cards:
         return []
 
-    # Embed all questions concurrently
-    embeddings = await asyncio.gather(*[embed_flashcard_text(card["question"]) for card in cards])
+    # Embed all questions
+    embeddings = []
+    for card in cards:
+        emb = await embed_flashcard_text(card["question"])
+        embeddings.append(emb)
 
     kept_cards: list[dict] = []
     kept_embeddings: list[list[float]] = []
