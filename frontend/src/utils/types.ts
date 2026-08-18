@@ -63,3 +63,15 @@ export interface IPopupStatus {
   text: string;
   type: "success" | "error";
 }
+
+// User
+export interface IUser {
+  id: string;
+  createdAt: Date;
+  timezone: string;
+  lastActive: Date;
+  username: string;
+  target: number;
+  currentStreak: number;
+  longestStreak: number;
+}

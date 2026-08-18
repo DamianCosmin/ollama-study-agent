@@ -1,4 +1,4 @@
-import { IDeckCard, ILibraryCard, IRecentAnswer } from "./types";
+import { IDeckCard, ILibraryCard, IRecentAnswer, IUser } from "./types";
 
 export function formatLastAccessedDate(date: Date): string {
   const now = new Date();
@@ -17,15 +17,30 @@ export function formatLastAccessedDate(date: Date): string {
   }
 }
 
+function formatBackendDate(dateString: string | null | undefined): Date | null {
+  if (!dateString) {
+    return null;
+  }
+
+  // Pure date format (YYYY-MM-DD)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return new Date(`${dateString}T00:00:00`);
+  }
+
+  // SQLite datetime format (YYYY-MM-DD HH:mm:ss)
+  const isoFormat: string = dateString.includes(" ") ? dateString.replace(" ", "T") + "Z" : dateString;
+
+  return new Date(isoFormat);
+}
+
 export function convertToILibraryCard(rawDocument: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) : ILibraryCard {
   if (!rawDocument) {
     throw new Error("Error: Convertion to ILibraryCard failed!"); 
   }
 
-  const isoString: string = rawDocument.uploadDate ? rawDocument.uploadDate.replace(" ", "T") + "Z" : "";
   const newDocument: ILibraryCard = {
     ...rawDocument,
-    uploadDate: new Date(isoString),
+    uploadDate: formatBackendDate(rawDocument.uploadDate) ?? new Date(),
   }
 
   return newDocument;
@@ -35,19 +50,11 @@ export function convertToIDeckCard(rawDeck: Omit<IDeckCard, "createdAt" | "lastA
   if (!rawDeck) {
     throw new Error("Error: Convertion to IDeckCard failed!"); 
   }
-
-  const formatIsoString = (dateString: string): string => {
-    if (!dateString) {
-      return "";
-    }
-
-    return dateString.includes(" ") ? dateString.replace(" ", "T") + "Z" : dateString;
-  }
   
   const newDeck: IDeckCard = {
     ...rawDeck,
-    createdAt: new Date(formatIsoString(rawDeck.createdAt)),
-    lastAccessed: new Date(formatIsoString(rawDeck.lastAccessed)),
+    createdAt: formatBackendDate(rawDeck.createdAt) ?? new Date(),
+    lastAccessed: formatBackendDate(rawDeck.lastAccessed) ?? new Date(),
   }
 
   return newDeck;
@@ -58,11 +65,24 @@ export function convertToIRecentAnswer(rawAnswer: Omit<IRecentAnswer, "answerDat
     throw new Error("Error: Convertion to IRecentAnswer failed!"); 
   }
 
-  const isoString: string = rawAnswer.answerDate ? rawAnswer.answerDate.replace(" ", "T") + "Z" : "";
   const newAnswer: IRecentAnswer = {
     ...rawAnswer,
-    answerDate: new Date(isoString),
+    answerDate: formatBackendDate(rawAnswer.answerDate) ?? new Date(),
   }
 
   return newAnswer;
+}
+
+export function convertToIUser(rawUser: Omit<IUser, "createdAt" | "lastActive"> & {createdAt: string, lastActive: string}) : IUser {
+  if (!rawUser) {
+    throw new Error("Error: Convertion to IUser failed!"); 
+  }
+
+  const newUser: IUser = {
+    ...rawUser,
+    createdAt: formatBackendDate(rawUser.createdAt) ?? new Date(),
+    lastActive: formatBackendDate(rawUser.lastActive) ?? new Date(),
+  }
+
+  return newUser;
 }
