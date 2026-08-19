@@ -8,10 +8,10 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboardIcon },
-  { label: "Knowledge Library", path: "/library", icon: LibraryIcon },
-  { label: "Flashcards", path: "/flashcards", icon: LayersIcon },
-  { label: "AI Tutor", path: "/tutor", icon: BotIcon },
+  {label: "Dashboard", path: "/", icon: LayoutDashboardIcon},
+  {label: "Knowledge Library", path: "/library", icon: LibraryIcon},
+  {label: "Flashcards", path: "/flashcards", icon: LayersIcon},
+  {label: "AI Tutor", path: "/tutor", icon: BotIcon},
 ];
 
 interface SidebarProps {
@@ -21,7 +21,7 @@ interface SidebarProps {
   variant?: "desktop" | "mobile";
 };
 
-const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
+const navLinkClasses = ({isActive}: {isActive: boolean}) =>
   [
     "flex items-center gap-4 rounded-lg px-4 py-3 text-base transition-colors",
     isActive
@@ -29,7 +29,7 @@ const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
     : "text-neutral-300 hover:bg-white/5 hover:text-zinc-200",
   ].join(" ");
 
-export function Sidebar({ onNavigate, onClose, variant = "desktop" }: SidebarProps) {
+export function Sidebar({onNavigate, onClose, variant = "desktop"}: SidebarProps) {
   return (
     <div className="flex h-full flex-col justify-between">
       <div className="flex flex-col gap-4 pb-8">
@@ -62,7 +62,7 @@ export function Sidebar({ onNavigate, onClose, variant = "desktop" }: SidebarPro
       </div>
 
       <nav className="flex flex-1 flex-col gap-2" aria-label="Primary">
-        {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
+        {NAV_ITEMS.map(({label, path, icon: Icon}) => (
           <NavLink
             key={path}
             to={path}
@@ -77,14 +77,14 @@ export function Sidebar({ onNavigate, onClose, variant = "desktop" }: SidebarPro
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-white/10 pt-4">
-        <button
-        type="button"
-        className="flex items-center gap-4 rounded-lg px-4 py-2 text-left text-sm text-neutral-300 hover:text-zinc-200"
+        <NavLink
+          to="/settings"
+          onClick={onNavigate}
+          className="flex items-center gap-3 rounded-lg px-4 py-2 text-left text-sm text-neutral-300 hover:text-zinc-200"
         >
-
-        <SettingsIcon className="size-4" />
+          <SettingsIcon className="size-4" />
           Settings
-        </button>
+        </NavLink>
       </div>
     </div>
   );
