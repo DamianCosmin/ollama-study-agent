@@ -1,44 +1,130 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserIcon, TargetIcon, FlameIcon, AwardIcon, PencilIcon } from "lucide-react";
 
 import { PageHeader } from "../components/PageHeader.tsx";
 import AvatarModal from "../components/AvatarModal.tsx";
-import { IUser } from "../utils/types.ts";
+import { API_BASE, IUser } from "../utils/types.ts";
+import { convertToIUser } from "../utils/functions.ts";
+import { useStatus } from "../context/StatusContext.tsx";
 
 const MIN_TARGET = 10;
 const MAX_TARGET = 200;
 
-const DEFAULT_USER: IUser = {
-  id: "",
-  createdAt: new Date(),
-  timezone: "",
-  lastActive: new Date(),
-  username: "Cosmin",
-  target: 50,
-  currentStreak: 15,
-  longestStreak: 42,
-  avatarId: "study-avatar",
-}
-
 export default function SettingsPage() {
-  const [user, setUser] = useState<IUser | null>(DEFAULT_USER);
-  const [username, setUsername] = useState(DEFAULT_USER.username);
-  const [dailyTarget, setDailyTarget] = useState(DEFAULT_USER.target);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
+  const [username, setUsername] = useState("");
+  const [dailyTarget, setDailyTarget] = useState(0);
+  const [avatarId, setAvatarId] = useState("");
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-  const [avatarId, setAvatarId] = useState(DEFAULT_USER.avatarId);
+  const { showStatus } = useStatus();
 
   const targetPercent = ((dailyTarget - MIN_TARGET) / (MAX_TARGET - MIN_TARGET)) * 100;
   const hasTargetChanged = user !== null && dailyTarget !== user.target;
+  const avatarUrl = "";
 
+  const fetchUser = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/user`, {
+        method: "GET"
+      });
 
-  const handleSaveUsername = () => {
-    // TO-DO: PATCH /api/user
+      const data  = await response.json();
+
+      if (response.ok) {
+        const rawData = data.user as Omit<IUser, "createdAt" | "lastActive"> & {createdAt: string, lastActive: string};
+        
+        // Converts string dates from database into Date objects to match IUser definition
+        const user: IUser = convertToIUser(rawData);
+        setUser(user);
+
+        setUsername(user.username);
+        setDailyTarget(user.target);
+        setAvatarId(user.avatarId);
+      } else {
+        showStatus({text: "Failed to retrieve user!", type: "error"});
+        console.error(`Error: Failed to retrieve user!`, data);
+      }
+    } catch (err) {
+      showStatus({text: "Could not connect to backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
+    }
+  }
+
+  const handleUserUpdate = async (
+    payload: Record<string, any>,
+    successMessage: string,
+    errorMessage: string,
+    onSuccess: (user: IUser) => void
+  ) => {
+    try {
+      const response = await fetch(`${API_BASE}/user`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onSuccess(data);
+        showStatus({text: successMessage, type: "success"});
+      } else {
+        showStatus({text: errorMessage, type: "error"});
+        console.error(`Error: ${errorMessage}`, data);
+      }
+    } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
+    }
+  }
+  
+  const handleSaveUsername = (newUsername: string) => {
+    return handleUserUpdate(
+      {"username": newUsername},
+      "Username changed successfully!",
+      "Failed to change username!",
+      (user: IUser) => {
+        const updatedUsername = user.username ?? newUsername;
+        setUsername(updatedUsername);
+
+        setUser((prev) => prev ? {...prev, username: updatedUsername} : prev);
+      },
+    );
   };
 
-  const handleSaveTarget = () => {
-    // TO-DO: PATCH /api/user
+  const handleSaveTarget = (newTarget: number) => {
+    return handleUserUpdate(
+      {"target": newTarget},
+      "Daily target changed successfully!",
+      "Failed to change daily target!",
+      (user: IUser) => {
+        const updatedTarget = user.target ?? newTarget;
+        setDailyTarget(updatedTarget);
+        
+        setUser((prev) => prev ? {...prev, target: updatedTarget} : prev);
+      },
+    );
   };
+
+  const handleSaveAvatar = (newAvatarId: string) => {
+    return handleUserUpdate(
+      {"avatar_id": newAvatarId},
+      "Avatar changed successfully!",
+      "Failed to change avatar!",
+      (user: IUser) => {
+        const updatedAvatarId = user.avatarId ?? newAvatarId;
+        setAvatarId(updatedAvatarId);
+        
+        setUser((prev) => prev ? {...prev, avatarId: updatedAvatarId} : prev);
+      },
+    );
+  };
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
 
   if (!user) {
     return null;
@@ -76,7 +162,7 @@ export default function SettingsPage() {
 
             <div className="flex justify-end pt-2">
               <button
-                onClick={handleSaveUsername}
+                onClick={() => handleSaveUsername(username)}
                 className="relative overflow-hidden rounded-lg bg-gradient-to-r from-cyan-400/80 to-emerald-300/80 px-6 py-2 text-xs font-semibold tracking-wide text-emerald-950 shadow-[0px_0px_15px_0px_rgba(0,220,229,0.30)] transition-opacity hover:opacity-90"
               >
                 Save Changes
@@ -129,7 +215,7 @@ export default function SettingsPage() {
               {hasTargetChanged && (
                 <div className="flex justify-end pt-1">
                   <button
-                    onClick={handleSaveTarget}
+                    onClick={() => handleSaveTarget(dailyTarget)}
                     className="relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-cyan-400/80 to-emerald-300/80 px-6 py-2 text-xs font-semibold tracking-wide text-emerald-950 shadow-[0px_0px_15px_0px_rgba(0,220,229,0.30)] transition-opacity hover:opacity-90"
                   >
                     Save Changes
@@ -194,7 +280,7 @@ export default function SettingsPage() {
         isOpen={isAvatarModalOpen}
         currentAvatarId={avatarId}
         onClose={() => setIsAvatarModalOpen(false)}
-        onSave={(id) => setAvatarId(id)}
+        onSave={handleSaveAvatar}
       />
     </div>
   );

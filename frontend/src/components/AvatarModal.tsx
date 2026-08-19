@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckIcon, SparklesIcon, type LucideIcon } from "lucide-react";
 
-export interface AvatarOption {
+interface AvatarOption {
   id: string;
   name: string;
   gradient: string;
@@ -21,13 +21,13 @@ const AVATAR_OPTIONS: AvatarOption[] = [
 
 interface AvatarModalProps {
   isOpen: boolean;
-  currentAvatarId: string | null;
+  currentAvatarId: string;
   onClose: () => void;
   onSave: (avatarId: string) => void;
 }
 
 export default function AvatarModal({isOpen, currentAvatarId, onClose, onSave}: AvatarModalProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(currentAvatarId);
+  const [selectedId, setSelectedId] = useState(currentAvatarId);
 
   useEffect(() => {
     if (isOpen) {
