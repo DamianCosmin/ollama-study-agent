@@ -5,6 +5,7 @@ import { PageHeader } from "../components/PageHeader.tsx";
 import AvatarModal from "../components/AvatarModal.tsx";
 import { API_BASE, IUser } from "../utils/types.ts";
 import { convertToIUser } from "../utils/functions.ts";
+import { AVATAR_URLS } from "../utils/avatars.ts";
 import { useStatus } from "../context/StatusContext.tsx";
 
 const MIN_TARGET = 10;
@@ -20,7 +21,7 @@ export default function SettingsPage() {
 
   const targetPercent = ((dailyTarget - MIN_TARGET) / (MAX_TARGET - MIN_TARGET)) * 100;
   const hasTargetChanged = user !== null && dailyTarget !== user.target;
-  const avatarUrl = "";
+  const avatarUrl = AVATAR_URLS[user?.avatarId ?? ""] ?? AVATAR_URLS["neo-matrix"];
 
   const fetchUser = async () => {
     try {
@@ -259,7 +260,12 @@ export default function SettingsPage() {
 
             <div className="flex size-24 items-center justify-center overflow-hidden rounded-full bg-white/5 shadow-[0px_0px_20px_0px_rgba(0,220,229,0.20)] outline outline-2 outline-offset-[-2px] outline-cyan-400/50">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Profile avatar" className="size-full object-cover" />
+                <img
+                  src={avatarUrl}
+                  alt={`${avatarId} avatar`}
+                  className="size-full object-cover" 
+                  loading="lazy"
+                />
               ) : (
                 <UserIcon className="size-10 text-neutral-400" />
               )}

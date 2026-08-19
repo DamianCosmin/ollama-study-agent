@@ -1,23 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckIcon, SparklesIcon, type LucideIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 
-interface AvatarOption {
-  id: string;
-  name: string;
-  gradient: string;
-  icon: LucideIcon;
-}
-
-const AVATAR_OPTIONS: AvatarOption[] = [
-  { id: "nexus-node", name: "Nexus Node", gradient: "from-cyan-400/40 via-cyan-300/10 to-transparent", icon: SparklesIcon },
-  { id: "aether-core", name: "Aether Core", gradient: "from-cyan-300/50 via-emerald-300/20 to-transparent", icon: SparklesIcon },
-  { id: "orbital-shift", name: "Orbital Shift", gradient: "from-emerald-400/40 via-emerald-500/10 to-transparent", icon: SparklesIcon },
-  { id: "synth-mind", name: "Synth Mind", gradient: "from-blue-400/40 via-indigo-400/10 to-transparent", icon: SparklesIcon },
-  { id: "flux-state", name: "Flux State", gradient: "from-fuchsia-400/40 via-purple-400/10 to-transparent", icon: SparklesIcon },
-  { id: "quantum-lotus", name: "Quantum Lotus", gradient: "from-teal-300/40 via-cyan-400/10 to-transparent", icon: SparklesIcon },
-];
+import { AVATAR_OPTIONS } from "../utils/avatars.ts";
 
 interface AvatarModalProps {
   isOpen: boolean;
@@ -103,7 +89,6 @@ export default function AvatarModal({isOpen, currentAvatarId, onClose, onSave}: 
             <div className="relative grid grid-cols-3 gap-4 sm:gap-6">
               {AVATAR_OPTIONS.map((avatar) => {
                 const isSelected = selectedId === avatar.id;
-                const AvatarIcon = avatar.icon;
 
                 return (
                   <button
@@ -112,13 +97,18 @@ export default function AvatarModal({isOpen, currentAvatarId, onClose, onSave}: 
                     className="flex flex-col items-center gap-2"
                   >
                     <div
-                      className={`flex size-16 items-center justify-center rounded-full bg-gradient-to-br outline outline-2 outline-offset-2 transition-all sm:size-20 ${avatar.gradient} ${
+                      className={`flex size-16 items-center justify-center overflow-hidden rounded-full outline outline-2 outline-offset-2 transition-all sm:size-20 ${
                         isSelected
                           ? "outline-cyan-400 shadow-[0px_0px_20px_0px_rgba(0,220,229,0.50)]"
                           : "outline-white/10 hover:outline-white/30"
                       }`}
                     >
-                      <AvatarIcon className={`size-6 sm:size-7 ${isSelected ? "text-cyan-200" : "text-white/70"}`} />
+                      <img
+                        src={avatar.url}
+                        alt={`${avatar.name} avatar`}
+                        className="size-full object-cover" 
+                        loading="lazy"
+                      />
                     </div>
                     
                     <span
@@ -143,7 +133,7 @@ export default function AvatarModal({isOpen, currentAvatarId, onClose, onSave}: 
 
               <button
                 onClick={handleSave}
-                disabled={!selectedId}
+                disabled={!selectedId || selectedId === currentAvatarId}
                 className="relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-cyan-400/80 to-emerald-300/80 px-5 py-2.5 text-sm font-semibold text-emerald-950 shadow-[0px_0px_15px_0px_rgba(0,220,229,0.30)] transition-opacity hover:opacity-90 disabled:opacity-30"
               >
                 <CheckIcon className="size-4" />
