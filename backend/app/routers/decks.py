@@ -181,7 +181,7 @@ async def create_deck(
         document_id = uuid.UUID(deck_info.documentId)
     except ValueError:
         raise HTTPException(
-            status_code=422,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Invalid document ID format"
         )
     

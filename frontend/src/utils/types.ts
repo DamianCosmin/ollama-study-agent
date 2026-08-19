@@ -74,4 +74,5 @@ export interface IUser {
   target: number;
   currentStreak: number;
   longestStreak: number;
+  avatarId: string;
 }

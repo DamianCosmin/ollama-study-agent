@@ -12,3 +12,4 @@ class User(CamelModel, table=True):
     target: int = Field(default=25)
     current_streak: int = Field(default=0)
     longest_streak: int = Field(default=0)
+    avatar_id: str = Field(default="")

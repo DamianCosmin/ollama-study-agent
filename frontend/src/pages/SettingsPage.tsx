@@ -17,6 +17,7 @@ const DEFAULT_USER: IUser = {
   target: 50,
   currentStreak: 15,
   longestStreak: 42,
+  avatarId: "study-avatar",
 }
 
 export default function SettingsPage() {
@@ -25,7 +26,7 @@ export default function SettingsPage() {
   const [dailyTarget, setDailyTarget] = useState(DEFAULT_USER.target);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-  const [avatarId, setAvatarId] = useState("");
+  const [avatarId, setAvatarId] = useState(DEFAULT_USER.avatarId);
 
   const targetPercent = ((dailyTarget - MIN_TARGET) / (MAX_TARGET - MIN_TARGET)) * 100;
   const hasTargetChanged = user !== null && dailyTarget !== user.target;
