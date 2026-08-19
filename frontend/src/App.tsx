@@ -5,6 +5,7 @@ import LibraryPage from "./pages/LibraryPage.tsx";
 import FlashcardsPage from "./pages/FlashcardsPage.tsx";
 import FlashcardsSessionPage from "./pages/FlashcardsSessionPage.tsx";
 import TutorPage from "./pages/TutorPage.tsx";
+import SettingsPage from "./pages/SettingsPage.tsx";
 import { StatusProvider } from "./context/StatusContext.tsx";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/flashcards" element={<FlashcardsPage />} />
           <Route path="/tutor" element={<TutorPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         <Route path="/flashcards/session" element={<FlashcardsSessionPage />} />
