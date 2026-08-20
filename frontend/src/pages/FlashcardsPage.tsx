@@ -8,23 +8,20 @@ import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
 import { useUpdateAccessDate } from "../hooks/useUpdateAccessDate.ts";
-import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
+import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard, IDailyTarget } from "../utils/types.ts";
 import { convertToIDeckCard, convertToIRecentAnswer } from "../utils/functions.ts";
-
-interface DailyTarget {
-  answered: number;
-  target: number;
-}
 
 export default function FlashcardsPage() {
   const [decks, setDecks] = useState<IDeckCard[]>([]);
   const [recentAnswers, setRecentAnswers] = useState<IRecentAnswer[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
-  const [dailyTarget, setDailyTarget] = useState<DailyTarget>({answered: 0, target: 0});
+  const [dailyTarget, setDailyTarget] = useState<IDailyTarget | null>(null);
 
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
-  const targetPercent: number = Math.round(dailyTarget.answered / dailyTarget.target * 100);
+  const targetPercent = dailyTarget && dailyTarget.target > 0
+    ? Math.min(100, Math.round((dailyTarget?.answered / dailyTarget?.target) * 100))
+    : 0;
   
   const socketRef = useRef<WebSocket | null>(null);
   const navigate = useNavigate();
@@ -175,7 +172,7 @@ export default function FlashcardsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        const daily: DailyTarget = data;
+        const daily: IDailyTarget = data;
         setDailyTarget(daily);
       } else {
         showStatus({text: "Failed to retrieve daily progress!", type: "error"});
@@ -258,7 +255,7 @@ export default function FlashcardsPage() {
         {/* Decks */}
         <div className="flex flex-1 flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold leading-8 text-cyan-400">Available Decks</h2>
+            <h2 className="text-2xl font-bold leading-8 text-zinc-200">Available Decks</h2>
             
             <div className="flex items-center gap-2">
               <button
@@ -315,7 +312,7 @@ export default function FlashcardsPage() {
             <span className="text-xs font-semibold tracking-wide text-neutral-300">Today's Target</span>
             
             <div className="flex items-end gap-2 py-2">
-              <span className="text-3xl font-extrabold leading-10 text-zinc-200">{dailyTarget.answered}</span>
+              <span className="text-3xl font-extrabold leading-10 text-zinc-200">{dailyTarget?.answered ?? 0}</span>
               <span className="pb-1 text-sm text-neutral-300">cards studied</span>
             </div>
             

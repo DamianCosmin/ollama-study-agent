@@ -7,7 +7,7 @@ interface PageHeaderProps {
   actions?: ReactNode;
 }
 
-export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+export function PageHeader({title, subtitle, actions}: PageHeaderProps) {
   return (
     <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex flex-col gap-2">
@@ -16,7 +16,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
         </h1>
 
         {subtitle && (
-          <p className="text-base leading-6 text-neutral-300">
+          <p className="text-sm text-cyan-400/80 sm:text-base">
             {subtitle}
           </p>
         )}

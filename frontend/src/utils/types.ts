@@ -76,3 +76,9 @@ export interface IUser {
   longestStreak: number;
   avatarId: string;
 }
+
+// Daily Target
+export interface IDailyTarget {
+  answered: number;
+  target: number;
+}
