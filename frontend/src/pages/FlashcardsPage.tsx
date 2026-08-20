@@ -11,16 +11,20 @@ import { useUpdateAccessDate } from "../hooks/useUpdateAccessDate.ts";
 import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard } from "../utils/types.ts";
 import { convertToIDeckCard, convertToIRecentAnswer } from "../utils/functions.ts";
 
-const DAILY_TARGET = { completed: 25, target: 40 };
+interface DailyTarget {
+  answered: number;
+  target: number;
+}
 
 export default function FlashcardsPage() {
   const [decks, setDecks] = useState<IDeckCard[]>([]);
   const [recentAnswers, setRecentAnswers] = useState<IRecentAnswer[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
+  const [dailyTarget, setDailyTarget] = useState<DailyTarget>({answered: 0, target: 0});
 
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
-  const targetPercent: number = Math.round(DAILY_TARGET.completed / DAILY_TARGET.target * 100);
+  const targetPercent: number = Math.round(dailyTarget.answered / dailyTarget.target * 100);
   
   const socketRef = useRef<WebSocket | null>(null);
   const navigate = useNavigate();
@@ -161,9 +165,31 @@ export default function FlashcardsPage() {
     }
   }
 
+  const fetchDailyTarget = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/user/daily`, {
+        method: "GET"
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const daily: DailyTarget = data;
+        setDailyTarget(daily);
+      } else {
+        showStatus({text: "Failed to retrieve daily progress!", type: "error"});
+        console.error("Error: Failed to retrieve daily progress!", data);
+      }
+    } catch (err) {
+      showStatus({text: "Could not connect to the backend!", type: "error"});
+      console.error("Error: Could not connect to backend!", err);
+    }
+  }
+
   useEffect(() => {
     fetchDecks();
     fetchRecentAnswers();
+    fetchDailyTarget();
   }, []);
 
   useEffect(() => {
@@ -289,7 +315,7 @@ export default function FlashcardsPage() {
             <span className="text-xs font-semibold tracking-wide text-neutral-300">Today's Target</span>
             
             <div className="flex items-end gap-2 py-2">
-              <span className="text-3xl font-extrabold leading-10 text-zinc-200">{DAILY_TARGET.completed}</span>
+              <span className="text-3xl font-extrabold leading-10 text-zinc-200">{dailyTarget.answered}</span>
               <span className="pb-1 text-sm text-neutral-300">cards studied</span>
             </div>
             
