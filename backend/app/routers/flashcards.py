@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 import uuid
 
 from app.db import get_session
-from app.models import Deck, Flashcard, AnswerLog
+from app.models import Deck, Flashcard, AnswerLog, User
+from app.services.streak import get_today_local, update_streak
 
 router = APIRouter()
 
@@ -76,6 +77,15 @@ async def submit_card_feedback(flashcard_id: uuid.UUID, feedback_body: FeedbackB
             detail=f"Deck related to flashcard {str(flashcard_id)} not found!"
         )
 
+    statement = select(User)
+    user = session.exec(statement).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found!"
+        )
+
     try:
         flashcard.feedback = str(feedback_body.feedback)
         deck.last_unanswered += 1
@@ -87,11 +97,15 @@ async def submit_card_feedback(flashcard_id: uuid.UUID, feedback_body: FeedbackB
         )
 
         session.add(log)
+
+        today_local = get_today_local(user.timezone)
+        update_streak(user, today_local, session)
+
         session.commit()
         session.refresh(flashcard)
     except Exception as e:
         session.rollback()
-        
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to submit feedback!"

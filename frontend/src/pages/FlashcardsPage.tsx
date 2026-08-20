@@ -128,6 +128,7 @@ export default function FlashcardsPage() {
         setDecks((prev) => prev.filter((deck) => deck.id !== deletedID));
 
         await fetchRecentAnswers();
+        await fetchDailyTarget();
 
         showStatus({text: "Deck was deleted successfully!", type: "success"});
       } else {

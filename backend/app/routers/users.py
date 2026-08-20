@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from app.db import get_session
 from app.models import User, AnswerLog
+from app.services.streak import get_today_local, check_user_streak
 
 class CreateUserRequest(BaseModel):
     username: str
@@ -67,10 +68,25 @@ async def get_user(session: Session = Depends(get_session)):
             detail="User not found!"
         )
 
+    today_local = get_today_local(user.timezone)
+    valid_streak = check_user_streak(user, today_local)
+
+    if not valid_streak:
+        try:
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+        except Exception as e:
+            session.rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update streak!"
+            ) from e
+
     return {
         "user": user
     }
-
 
 @router.patch("/api/user")
 async def update_user(update_info: ProfileUpdateRequest, session: Session = Depends(get_session)):
@@ -121,7 +137,11 @@ async def get_daily_target(session: Session = Depends(get_session)):
     local_today_start = datetime.now(user_tz).replace(hour=0, minute=0, second=0, microsecond=0)
     utc_today_start = local_today_start.astimezone(timezone.utc)
 
-    statement = select(func.count()).select_from(AnswerLog).where(AnswerLog.answer_date >= utc_today_start)
+    statement = (
+        select(func.count())
+        .select_from(AnswerLog)
+        .where(AnswerLog.answer_date >= utc_today_start)
+    )
 
     answered = session.exec(statement).one()
 
