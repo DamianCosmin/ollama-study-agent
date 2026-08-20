@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const { showStatus } = useStatus();
 
   const targetPercent = ((dailyTarget - MIN_TARGET) / (MAX_TARGET - MIN_TARGET)) * 100;
+  const hasUsernameChanged = user !== null && username.trim() !== user.username;
   const hasTargetChanged = user !== null && dailyTarget !== user.target;
   const avatarUrl = AVATAR_URLS[user?.avatarId ?? ""] ?? AVATAR_URLS["neo-matrix"];
 
@@ -161,14 +162,16 @@ export default function SettingsPage() {
               />
             </div>
 
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => handleSaveUsername(username)}
-                className="relative overflow-hidden rounded-lg bg-gradient-to-r from-cyan-400/80 to-emerald-300/80 px-6 py-2 text-xs font-semibold tracking-wide text-emerald-950 shadow-[0px_0px_15px_0px_rgba(0,220,229,0.30)] transition-opacity hover:opacity-90"
-              >
-                Save Changes
-              </button>
-            </div>
+            {hasUsernameChanged && (
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => handleSaveUsername(username.trim())}
+                  className="relative overflow-hidden rounded-lg bg-gradient-to-r from-cyan-400/80 to-emerald-300/80 px-6 py-2 text-xs font-semibold tracking-wide text-emerald-950 shadow-[0px_0px_15px_0px_rgba(0,220,229,0.30)] transition-opacity hover:opacity-90"
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-6 rounded-xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">

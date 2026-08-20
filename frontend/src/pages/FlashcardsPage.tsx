@@ -312,7 +312,6 @@ export default function FlashcardsPage() {
           </div>
 
           <div className="relative flex flex-col gap-2 overflow-hidden rounded-xl bg-white/5 p-5 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
-            <div className="pointer-events-none absolute bottom-0 right-0 size-32 rounded-full bg-fuchsia-500/10 blur-[20px]" />
             <span className="text-xs font-semibold tracking-wide text-neutral-300">Today's Target</span>
             
             <div className="flex items-end gap-2 py-2">
