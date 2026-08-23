@@ -1,4 +1,4 @@
-import { IDeckCard, ILibraryCard, IRecentAnswer, IUser } from "./types";
+import { IDeckCard, ILibraryCard, IRecentAnswer, IUser, IChatMessage, IChatSession } from "./types.ts";
 
 export function formatLastAccessedDate(date: Date): string {
   const now = new Date();
@@ -85,4 +85,30 @@ export function convertToIUser(rawUser: Omit<IUser, "createdAt" | "lastActive"> 
   }
 
   return newUser;
+}
+
+export function convertToIChatMessage(rawMessage: Omit<IChatMessage, "createdAt"> & {createdAt: string}): IChatMessage {
+  if (!rawMessage) {
+    throw new Error("Error: Convertion to IChatMessage failed!"); 
+  }
+
+  const newMessage: IChatMessage = {
+    ...rawMessage,
+    createdAt: formatBackendDate(rawMessage.createdAt) ?? new Date(),
+  }
+
+  return newMessage;
+}
+
+export function convertToIChatSession(rawSession: Omit<IChatSession, "createdAt"> & {createdAt: string}): IChatSession {
+  if (!rawSession) {
+    throw new Error("Error: Convertion to IChatSession failed!"); 
+  }
+
+  const newSession: IChatSession = {
+    ...rawSession,
+    createdAt: formatBackendDate(rawSession.createdAt) ?? new Date(),
+  }
+
+  return newSession;
 }

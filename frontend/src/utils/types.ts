@@ -82,3 +82,19 @@ export interface IDailyTarget {
   answered: number;
   target: number;
 }
+
+// Chat
+export interface IChatMessage {
+  id: string;
+  sessionId: string;
+  createdAt: Date;
+  role: string;
+  content: string;
+}
+
+export interface IChatSession {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  title: string;
+}
