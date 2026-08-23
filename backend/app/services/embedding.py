@@ -1,10 +1,12 @@
 import ollama
 from app.services.ollama_service import ollama_async_client
 
+EMBEDDING_MODEL = 'nomic-embed-text'
+
 def create_embeddings(chunk_records: list[dict]) -> list[dict]:
     texts = [record["text"] for record in chunk_records]
 
-    response = ollama.embed(model='nomic-embed-text', input=texts)
+    response = ollama.embed(model=EMBEDDING_MODEL, input=texts)
     embeddings = response["embeddings"]
 
     if len(embeddings) != len(chunk_records):
@@ -21,6 +23,10 @@ def create_embeddings(chunk_records: list[dict]) -> list[dict]:
 
     return embedded_chunks
 
-async def embed_flashcard_text(text: str):
-    response = await ollama_async_client.embed(model='nomic-embed-text', input=text)
+async def embed_flashcard_text(text: str) -> list[float]:
+    response = await ollama_async_client.embed(model=EMBEDDING_MODEL, input=text)
+    return response["embeddings"][0]
+
+async def embed_user_question(question: str) -> list[float]:
+    response = await ollama_async_client.embed(model=EMBEDDING_MODEL, input=question)
     return response["embeddings"][0]

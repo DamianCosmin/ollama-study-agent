@@ -1,27 +1,117 @@
-from fastapi import APIRouter, Depends
-from sqlmodel import Session
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel import Session, select
 from pydantic import BaseModel
+from typing import Optional
+import uuid
+import asyncio
 
 from app.db import get_session
 from app.models import ChatMessage, ChatSession
+from app.services.embedding import embed_user_question
+from app.services.chromadb_storage import query_related_documents
+from app.services.ollama_service import generate_question_answer, generate_session_title
 
 router = APIRouter()
 
 class ChatRequest(BaseModel):
     question: str
-    sessionId: str
+    sessionId: Optional[str] = None
     userId: str
+
+async def generate_answer(question: str, message_history: list[dict]):
+    # Generate vector embedding for the user's question
+    embedding = await embed_user_question(question)
+
+    # Retrieve semantic context from ChromaDB
+    context = await asyncio.to_thread(query_related_documents, embedding, 3) 
+
+    # Compute LLM answer with extracted data
+    answer = await generate_question_answer(question, context, message_history)
+
+    return answer
 
 @router.post("/api/chat")
 async def send_chat(chat_body: ChatRequest, session: Session = Depends(get_session)):
-    # TO-DOs
-    # 1: Create ChatMessage with user question
-    # 2: Embed question & message history
-    # 3: Query ChromaDB
-    # 4: Compute LLM answer
-    # 5: Create ChatMessage with LLM answer
-    # 6: Send answer to client
+    try:
+        user_id = uuid.UUID(chat_body.userId)
+        session_id = uuid.UUID(chat_body.sessionId) if chat_body.sessionId else None
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Invalid format for user ID or session ID"
+        )
+
+    try:
+        if session_id:
+            chat_session = session.get(ChatSession, session_id)
+
+            if not chat_session:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Chat session not found!"
+                )
+        else:
+            # Generate session title from question
+            generated_title = await generate_session_title(chat_body.question)
+
+            # Create ChatMessage for user question 
+            new_chat_session = ChatSession(
+                user_id=user_id,
+                title=generated_title
+            )
+
+            session.add(new_chat_session)
+            session.commit()
+            session.refresh(new_chat_session)
+
+            chat_session = new_chat_session
+
+        statement = (
+            select(ChatMessage)
+            .where(ChatMessage.session_id == chat_session.id)
+            .order_by(ChatMessage.created_at.asc())
+        )
+
+        message_history = session.exec(statement).all()
+        history = [
+            {
+                "role": message.role,
+                "content": message.content
+            }
+            for message in message_history
+        ]
+
+        user_message = ChatMessage(
+            session_id=chat_session.id,
+            role="user",
+            content=chat_body.question
+        )
+
+        session.add(user_message)
+        session.commit()
+
+        answer = await generate_answer(chat_body.question, history)
+
+        # Create ChatMessage for assistant answer
+        assistant_message = ChatMessage(
+            session_id=chat_session.id,
+            role="assistant",
+            content=answer
+        )
+
+        session.add(assistant_message)
+        session.commit()
+        session.refresh(assistant_message)
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process question!"
+        ) from e
 
     return {
-        "answer": "Test chat was sent successfully!"
+        "answer": assistant_message
     }

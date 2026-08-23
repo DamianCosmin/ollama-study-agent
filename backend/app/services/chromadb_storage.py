@@ -14,6 +14,20 @@ def save_chunks(embedded_chunks: list[dict]):
 def delete_data(document_id: str):
     collection.delete(where={"document_id": document_id})
 
+def query_related_documents(embedding: list[float], n_results: int) -> str:
+    result = collection.query(
+        query_embeddings=[embedding],
+        n_results=n_results,
+        include=["documents"]
+    )
+
+    documents = result["documents"]
+
+    if not documents or not documents[0]:
+        return ""
+
+    return "\n\n".join(documents[0])
+
 # Testing purposes only
 def get_all_data():
     result = collection.get(include=["documents", "metadatas", "embeddings"])

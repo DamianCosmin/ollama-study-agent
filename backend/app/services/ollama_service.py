@@ -3,6 +3,7 @@ import textwrap
 import json
 
 ollama_async_client = ollama.AsyncClient(host="http://localhost:11434")
+OLLAMA_MODEL = 'qwen2.5:7b-instruct'
 ALLOWED_CATEGORIES = ["mathematics", "sciences", "biology", "anatomy", "computer", "psychology", "literature", "history", "geography", "law", "economics", "arts", "engineering", "agriculture", "general"]
 
 DIFFICULTY_INSTRUCTIONS = {
@@ -15,8 +16,7 @@ def categorize_document(extracted_text: str):
     sample_text = extracted_text[:2500]
 
     prompt = textwrap.dedent(f"""
-        You are an expert text classifier. Your task is to analyze the provided text and classify 
-        it into exactly ONE of the following categories: {", ".join(ALLOWED_CATEGORIES)}.
+        You are an expert text classifier. Your task is to analyze the provided text and classify it into exactly ONE of the following categories: {", ".join(ALLOWED_CATEGORIES)}.
 
         Rules:
         1. If the text does not clearly fit into any of the specific categories above, you MUST fallback to: general.
@@ -29,7 +29,7 @@ def categorize_document(extracted_text: str):
 
     try:
         response = ollama.chat(
-            model='qwen2.5:7b-instruct',
+            model=OLLAMA_MODEL,
             messages=[
                 {
                     "role": "user",
@@ -51,8 +51,7 @@ def categorize_document(extracted_text: str):
 
 async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_chunk: int):
     prompt = textwrap.dedent(f"""
-        You are a professional flashcards generator. Your task is to generate up to 
-        {cards_per_chunk} flashcard(s) from the text below for a study app.
+        You are a professional flashcards generator. Your task is to generate up to {cards_per_chunk} flashcard(s) from the text below for a study app.
 
         Rules:
         1. Respect the difficulty instructions: {DIFFICULTY_INSTRUCTIONS[difficulty]}
@@ -68,7 +67,7 @@ async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_
     """).strip()
 
     response = await ollama_async_client.generate(
-        model='qwen2.5:7b-instruct',
+        model=OLLAMA_MODEL,
         prompt=prompt,
         stream=False,
         options={"num_predict": 400, "temperature": 0.2}
@@ -99,15 +98,84 @@ async def generate_deck_title(cards: list[dict], category: str):
     """).strip()
 
     response = await ollama_async_client.generate(
-        model='qwen2.5:7b-instruct',
+        model=OLLAMA_MODEL,
         prompt=prompt,
         stream=False,
-        options={"num_predict": 400, "temperature": 0.2}
+        options={"num_predict": 50, "temperature": 0.2}
     )
     
-    title = response["response"].strip().capitalize()
+    title = response["response"].strip()
 
     if not title:
         return f"{category.capitalize()} Flashcards"
     
+    return title
+
+async def generate_question_answer(question: str, context: str, history: list[dict]):
+    prompt = textwrap.dedent(f"""
+        You are a helpful and knowledgeable study tutor. Your primary goal is to answer the student's questions clearly, accurately, and concisely.
+
+        CRITICAL INSTRUCTIONS:
+        1. STRICT GROUNDING: You must answer the student's question USING ONLY the information provided in the "Study Materials Context" below. 
+        2. NO EXTERNAL KNOWLEDGE: Do not introduce outside facts, general knowledge, or assumptions that are not explicitly stated in the provided context, even if you know them to be true.
+        3. INSUFFICIENT CONTEXT: If the provided context does not contain the answer, you MUST refuse to answer. Do not guess. Reply exactly with: "I don't have enough information in your study materials to answer that question."
+        4. FOLLOW-UPS: The user may ask follow-up questions (example: "Why did that happen?"). Use the conversation history to understand what "that" refers to, but you must still verify the factual answer against the provided context.
+        5. TONE: Explain concepts naturally. Do not copy the context word-for-word, but ensure your phrasing does not alter the original factual meaning.
+
+        Study Materials Context:
+        {context}
+    """).strip()
+
+    system_message = {
+        "role": "system",
+        "content": prompt
+    }
+
+    user_message = {
+        "role": "user",
+        "content": question
+    }
+
+    all_messages = [system_message] + history[-10:] + [user_message]
+
+    response = await ollama_async_client.chat(
+        model=OLLAMA_MODEL,
+        messages=all_messages,
+        stream=False,
+        options={"temperature": 0.3}
+    )
+
+    answer = response["message"]["content"].strip()
+
+    if not answer:
+        return "Could not process the question. Too little context stored in Knowledge Library!"
+
+    return answer
+
+async def generate_session_title(question: str):
+    prompt = textwrap.dedent(f"""
+        You are an expert title generator, tasked with creating a short, concise title for a study session. Summarize the core topic of the user's question into a title.
+
+        Rules:
+        1. Maximum 6 words.
+        2. Do not answer the question.
+        3. Do not include quotation marks, punctuation, or conversational filler (e.g., do not say "Here is the title").
+        4. Provide ONLY the raw title text.
+
+        User Question:
+        {question}
+    """).strip()
+
+    response = await ollama_async_client.generate(
+        model=OLLAMA_MODEL,
+        prompt=prompt,
+        stream=False,
+        options={"num_predict": 50, "temperature": 0.2}
+    )
+
+    title = response["response"].strip()
+
+    if not title:
+        return "New Study Session"
+
     return title
