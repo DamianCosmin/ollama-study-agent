@@ -61,8 +61,6 @@ async def send_chat(chat_body: ChatRequest, session: Session = Depends(get_sessi
             )
 
             session.add(new_chat_session)
-            session.commit()
-            session.refresh(new_chat_session)
 
             chat_session = new_chat_session
 
@@ -88,7 +86,6 @@ async def send_chat(chat_body: ChatRequest, session: Session = Depends(get_sessi
         )
 
         session.add(user_message)
-        session.commit()
 
         answer = await generate_answer(chat_body.question, history)
 
