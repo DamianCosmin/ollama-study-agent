@@ -35,7 +35,7 @@ function formatBackendDate(dateString: string | null | undefined): Date | null {
 
 export function convertToILibraryCard(rawDocument: Omit<ILibraryCard, "uploadDate"> & {uploadDate: string}) : ILibraryCard {
   if (!rawDocument) {
-    throw new Error("Error: Convertion to ILibraryCard failed!"); 
+    throw new Error("Error: Conversion to ILibraryCard failed!"); 
   }
 
   const newDocument: ILibraryCard = {
@@ -48,7 +48,7 @@ export function convertToILibraryCard(rawDocument: Omit<ILibraryCard, "uploadDat
 
 export function convertToIDeckCard(rawDeck: Omit<IDeckCard, "createdAt" | "lastAccessed"> & {createdAt: string, lastAccessed: string}) : IDeckCard {
   if (!rawDeck) {
-    throw new Error("Error: Convertion to IDeckCard failed!"); 
+    throw new Error("Error: Conversion to IDeckCard failed!"); 
   }
   
   const newDeck: IDeckCard = {
@@ -62,7 +62,7 @@ export function convertToIDeckCard(rawDeck: Omit<IDeckCard, "createdAt" | "lastA
 
 export function convertToIRecentAnswer(rawAnswer: Omit<IRecentAnswer, "answerDate"> & {answerDate: string}): IRecentAnswer {
   if (!rawAnswer) {
-    throw new Error("Error: Convertion to IRecentAnswer failed!"); 
+    throw new Error("Error: Conversion to IRecentAnswer failed!"); 
   }
 
   const newAnswer: IRecentAnswer = {
@@ -75,7 +75,7 @@ export function convertToIRecentAnswer(rawAnswer: Omit<IRecentAnswer, "answerDat
 
 export function convertToIUser(rawUser: Omit<IUser, "createdAt" | "lastActive"> & {createdAt: string, lastActive: string}) : IUser {
   if (!rawUser) {
-    throw new Error("Error: Convertion to IUser failed!"); 
+    throw new Error("Error: Conversion to IUser failed!"); 
   }
 
   const newUser: IUser = {
@@ -89,7 +89,7 @@ export function convertToIUser(rawUser: Omit<IUser, "createdAt" | "lastActive"> 
 
 export function convertToIChatMessage(rawMessage: Omit<IChatMessage, "createdAt"> & {createdAt: string}): IChatMessage {
   if (!rawMessage) {
-    throw new Error("Error: Convertion to IChatMessage failed!"); 
+    throw new Error("Error: Conversion to IChatMessage failed!"); 
   }
 
   const newMessage: IChatMessage = {
@@ -102,7 +102,7 @@ export function convertToIChatMessage(rawMessage: Omit<IChatMessage, "createdAt"
 
 export function convertToIChatSession(rawSession: Omit<IChatSession, "createdAt"> & {createdAt: string}): IChatSession {
   if (!rawSession) {
-    throw new Error("Error: Convertion to IChatSession failed!"); 
+    throw new Error("Error: Conversion to IChatSession failed!"); 
   }
 
   const newSession: IChatSession = {
