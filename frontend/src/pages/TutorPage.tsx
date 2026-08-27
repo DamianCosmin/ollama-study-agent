@@ -28,9 +28,11 @@ export default function TutorPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [pendingToken, setPendingToken] = useState<number | null>(null);
+  const [streamingMessage, setStreamingMessage] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const requestTokenRef = useRef(0);
   const { showStatus } = useStatus();
 
@@ -55,7 +57,7 @@ export default function TutorPage() {
           console.error("Error: Failed to fetch user!", data);
         }
       } catch (err) {
-        showStatus({text: "Could not connect to the backend.", type: "error"});
+        showStatus({text: "Could not connect to the backend!", type: "error"});
         console.error("Error: Could not connect to backend!", err);
       }
     }
@@ -70,8 +72,8 @@ export default function TutorPage() {
   }, [user]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, isSending]);
+    scrollRef.current?.scrollTo({top: scrollRef.current.scrollHeight, behavior: "smooth"});
+  }, [messages, isSending, streamingMessage]);
 
   const fetchSessions = async (userId: string) => {
     try {
@@ -90,12 +92,13 @@ export default function TutorPage() {
         console.error("Error: Failed to fetch chat sessions!", data);
       }
     } catch (err) {
-      showStatus({text: "Could not connect to the backend.", type: "error"});
+      showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
     }
   };
 
   const loadSession = async (session: IChatSession) => {
+    abortControllerRef.current?.abort();
     setIsSidebarOpen(false);
 
     setValue("");
@@ -123,12 +126,13 @@ export default function TutorPage() {
         console.error("Error: Failed to fetch session messages!", data);
       }
     } catch (err) {
-      showStatus({text: "Could not connect to the backend.", type: "error"});
+      showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
     }
   };
 
   const startNewChat = () => {
+    abortControllerRef.current?.abort();
     setSessionId(null);
     setMessages([]);
     setIsSidebarOpen(false);
@@ -163,19 +167,19 @@ export default function TutorPage() {
   };
 
   const sendMessage = async (question: string) => {
-    const trimmedQuestion = question.trim();
+    const trimmedQuestion: string = question.trim();
 
     if (!trimmedQuestion || isSending || !user)
       return;
 
-    const isNewChat = !sessionId;
+    const isNewChat: boolean = !sessionId;
 
     if (isNewChat) {
       setIsCreatingSession(true);
     }
 
     // Create mock message to update the UI (real message is stored on the backend correctly)
-    const randomId = crypto.randomUUID();
+    const randomId: string = crypto.randomUUID();
     const userMessage: IChatMessage = {
       id: randomId,
       sessionId: sessionId ?? "",
@@ -184,7 +188,7 @@ export default function TutorPage() {
       content: trimmedQuestion,
     };
 
-    const removeRandomId = () => {
+    const removeRandomIdMessage = () => {
       setMessages((prev) => prev.filter((m) => m.id !== randomId));
     }
 
@@ -198,6 +202,9 @@ export default function TutorPage() {
     setPendingToken(currentToken);
 
     try {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const chatBody = {
         question: trimmedQuestion,
         sessionId: sessionId,
@@ -207,39 +214,94 @@ export default function TutorPage() {
       const response = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(chatBody)
+        body: JSON.stringify(chatBody),
+        signal: controller.signal
       });
 
-      const data = await response.json();
-
       if (requestTokenRef.current !== currentToken)
         return;
 
-      if (response.ok) {
-        const assistantMessage: IChatMessage = convertToIChatMessage(data.answer);
-        setMessages((prev) => [...prev, assistantMessage]);
-
-        if (isNewChat) {
-          setSessionId(assistantMessage.sessionId);
-
-          // Used to update the session title and dispose generation animation
-          await fetchSessions(user.id); 
-        }
-      } else {
-        showStatus({text: "Failed to get a response from the tutor.", type: "error"});
+      if (!response.ok) {
+        const data = await response.json();
+        showStatus({text: "Failed to get a response from the tutor!", type: "error"});
         console.error("Error: Failed to send chat message!", data);
-        removeRandomId();
+        removeRandomIdMessage();
+
+        return;
+      }
+
+      if (!response.body) {
+        showStatus({text: "Streaming not supported!", type: "error"});
+        console.error("Error: Streaming not supported!");
+        removeRandomIdMessage();
+
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let buffer: string = "";
+      let streamedAnswer: string = "";
+      setStreamingMessage("");
+      
+      while (true) {
+        const {value, done} = await reader.read();
+
+        if (done)
+          break;
+
+        buffer += decoder.decode(value, {stream: true});
+
+        // SSE events are separated by a blank line
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
+
+        for (const rawEvent of events) {
+          const eventTypeMatch = rawEvent.match(/^event: (.+)$/m);
+          const dataMatch = rawEvent.match(/^data: (.+)$/m);
+          const eventType = eventTypeMatch?.[1] ?? "message";
+          const rawData = dataMatch?.[1] ?? "";
+
+          if (eventType === "session") {
+            // Update the session ID with the newly created one
+            setSessionId(rawData);
+            await fetchSessions(user.id);
+          } else if (eventType === "error") {
+            showStatus({text: "The tutor failed to generate a response!", type: "error"});
+            console.error("Error: Failed to generate response!");
+            setStreamingMessage(null);
+
+            return;
+          } else if (eventType === "done") {
+            const rawMessage: Omit<IChatMessage, "createdAt"> & { createdAt: string } = JSON.parse(rawData);
+            const finalMessage: IChatMessage = convertToIChatMessage(rawMessage);
+            setMessages((prev) => [...prev, finalMessage]);
+            setStreamingMessage(null);
+
+            return;
+          } else {
+            const {token} = JSON.parse(rawData);
+            streamedAnswer += token;
+            
+            setStreamingMessage(streamedAnswer);
+          }
+        }
       }
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError")
+        return;
+
       if (requestTokenRef.current !== currentToken)
         return;
 
-      showStatus({text: "Could not connect to the backend.", type: "error"});
+      showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
-      removeRandomId();
+      removeRandomIdMessage();
     } finally {
       if (requestTokenRef.current === currentToken) {
         setPendingToken(null);
+        setStreamingMessage(null);
 
         if (isNewChat)
           setIsCreatingSession(false);
@@ -402,7 +464,22 @@ export default function TutorPage() {
                     <ChatBubble key={message.id} message={message} />
                   ))}
 
-                  {isSending && <TypingBubble />}
+                  {streamingMessage !== null && (
+                    streamingMessage === "" ? (
+                      <TypingBubble /> 
+                    ) : (
+                      // Create a temporary IChatMessage object to pass to ChatBubble */}
+                      <ChatBubble 
+                        message={{
+                          id: "streaming-response",
+                          sessionId: sessionId ?? "",
+                          role: "assistant",
+                          content: streamingMessage,
+                          createdAt: new Date()
+                        }} 
+                      />
+                    )
+                  )}
                 </div>
               </div>
 

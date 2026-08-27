@@ -111,7 +111,7 @@ async def generate_deck_title(cards: list[dict], category: str):
     
     return title
 
-async def generate_question_answer(question: str, context: str, history: list[dict]):
+async def stream_question_answer(question: str, context: str, history: list[dict]):
     prompt = textwrap.dedent(f"""
         You are a helpful and knowledgeable study tutor. Your primary goal is to answer the student's questions clearly, accurately, and concisely.
 
@@ -138,19 +138,17 @@ async def generate_question_answer(question: str, context: str, history: list[di
 
     all_messages = [system_message] + history[-10:] + [user_message]
 
-    response = await ollama_async_client.chat(
+    stream = await ollama_async_client.chat(
         model=OLLAMA_MODEL,
         messages=all_messages,
-        stream=False,
+        stream=True,
         options={"temperature": 0.3}
     )
 
-    answer = response["message"]["content"].strip()
-
-    if not answer:
-        return "Could not process the question. Too little context stored in Knowledge Library!"
-
-    return answer
+    async for chunk in stream:
+        token = chunk["message"]["content"]
+        if token:
+            yield token
 
 async def generate_session_title(question: str):
     prompt = textwrap.dedent(f"""
