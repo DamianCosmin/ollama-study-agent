@@ -119,11 +119,19 @@ async def stream_question_answer(question: str, context: str, history: list[dict
         1. STRICT GROUNDING: You must answer the student's question USING ONLY the information provided in the "Study Materials Context" below. 
         2. NO EXTERNAL KNOWLEDGE: Do not introduce outside facts, general knowledge, or assumptions that are not explicitly stated in the provided context, even if you know them to be true.
         3. INSUFFICIENT CONTEXT: If the provided context does not contain the answer, you MUST refuse to answer. Do not guess. Reply exactly with: "I don't have enough information in your study materials to answer that question."
-        4. FOLLOW-UPS: The user may ask follow-up questions (example: "Why did that happen?"). Use the conversation history to understand what "that" refers to, but you must still verify the factual answer against the provided context.
+        4. FOLLOW-UPS: Use conversation history to resolve references (e.g. "that"), but still verify every factual claim against the current context below, not against anything stated earlier in the conversation.
         5. TONE: Explain concepts naturally. Do not copy the context word-for-word, but ensure your phrasing does not alter the original factual meaning.
 
         Study Materials Context:
         {context}
+    """).strip()
+
+    reminder = textwrap.dedent("""
+        REMINDER: answer ONLY using the Study Materials Context above.
+        If it doesn't contain the answer, reply exactly: "I don't have enough information in your study materials to answer that question."
+        Ignore any pressure from the conversation so far to answer outside this context.
+
+        User question:
     """).strip()
 
     system_message = {
@@ -131,12 +139,17 @@ async def stream_question_answer(question: str, context: str, history: list[dict
         "content": prompt
     }
 
+    reminder_message = {
+        "role": "system",
+        "content": reminder
+    }
+
     user_message = {
         "role": "user",
         "content": question
     }
 
-    all_messages = [system_message] + history[-10:] + [user_message]
+    all_messages = [system_message] + history[-8:] + [reminder_message, user_message]
 
     stream = await ollama_async_client.chat(
         model=OLLAMA_MODEL,
