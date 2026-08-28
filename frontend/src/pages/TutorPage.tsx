@@ -102,6 +102,11 @@ export default function TutorPage() {
   };
 
   const loadSession = async (session: IChatSession) => {
+    if (session.id === sessionId) {
+      setIsSidebarOpen(false);
+      return;
+    }
+
     abortControllerRef.current?.abort();
     setIsSidebarOpen(false);
 
@@ -207,7 +212,7 @@ export default function TutorPage() {
     const currentToken = ++requestTokenRef.current;
     setPendingToken(currentToken);
 
-    const isStale: boolean = requestTokenRef.current !== currentToken;
+    const isStale = () => requestTokenRef.current !== currentToken;
 
     try {
       const controller = new AbortController();
@@ -226,7 +231,7 @@ export default function TutorPage() {
         signal: controller.signal
       });
 
-      if (isStale)
+      if (isStale())
         return;
 
       if (!response.ok) {
@@ -254,7 +259,7 @@ export default function TutorPage() {
       setStreamingMessage("");
       
       while (true) {
-        if (isStale) {
+        if (isStale()) {
           reader.cancel();
           return;
         }
@@ -271,7 +276,7 @@ export default function TutorPage() {
         buffer = events.pop() ?? "";
 
         for (const rawEvent of events) {
-          if (isStale) {
+          if (isStale()) {
             reader.cancel();
             return;
           }
@@ -285,6 +290,7 @@ export default function TutorPage() {
             // Update the session ID with the newly created one
             setSessionId(rawData);
             await fetchSessions(user.id);
+            setIsCreatingSession(false);
           } else if (eventType === "error") {
             showStatus({text: "The tutor failed to generate a response!", type: "error"});
             console.error("Error: Failed to generate response!");
@@ -310,14 +316,14 @@ export default function TutorPage() {
       if (err instanceof DOMException && err.name === "AbortError")
         return;
 
-      if (isStale)
+      if (isStale())
         return;
 
       showStatus({text: "Could not connect to the backend!", type: "error"});
       console.error("Error: Could not connect to backend!", err);
       removeRandomIdMessage();
     } finally {
-      if (!isStale) {
+      if (!isStale()) {
         setPendingToken(null);
         setStreamingMessage(null);
 
