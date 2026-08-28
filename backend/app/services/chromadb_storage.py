@@ -14,19 +14,23 @@ def save_chunks(embedded_chunks: list[dict]):
 def delete_data(document_id: str):
     collection.delete(where={"document_id": document_id})
 
-def query_related_documents(embedding: list[float], n_results: int) -> str:
+def query_related_documents(embedding: list[float], n_results: int = 3, max_distance: float = 1.0) -> str:
     result = collection.query(
         query_embeddings=[embedding],
         n_results=n_results,
-        include=["documents"]
+        include=["documents", "distances"]
     )
 
-    documents = result["documents"]
+    documents = result["documents"][0] if result["documents"] else []
+    distances = result["distances"][0] if result["distances"] else []
 
-    if not documents or not documents[0]:
+    related_documents = [
+        doc for doc, dist in zip(documents, distances) if dist <= max_distance
+    ]
+    if not related_documents:
         return ""
 
-    return "\n\n".join(documents[0])
+    return "\n\n".join(related_documents)
 
 # Testing purposes only
 def get_all_data():

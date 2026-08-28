@@ -84,7 +84,7 @@ async def send_chat(chat_body: ChatRequest, request: Request, session: Session =
         embedding = await embed_user_question(chat_body.question)
 
         # Retrieve semantic context from ChromaDB
-        context = await asyncio.to_thread(query_related_documents, embedding, 3)
+        context = await asyncio.to_thread(query_related_documents, embedding, 3, 0.9)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
