@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BotIcon, MenuIcon, XIcon, MessageSquarePlusIcon } from "lucide-react";
+import { BotIcon, MenuIcon, XIcon, MessageSquarePlusIcon, Trash2Icon } from "lucide-react";
 
 import { PageHeader } from "../components/PageHeader.tsx";
+import DeleteItemModal from "../components/DeleteItemModal.tsx";
 import ChatInput from "../components/ChatInput.tsx";
 import ChatBubble from "../components/ChatBubble.tsx";
 import TypingBubble from "../components/TypingBubble.tsx";
@@ -29,6 +30,9 @@ export default function TutorPage() {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [pendingToken, setPendingToken] = useState<number | null>(null);
   const [streamingMessage, setStreamingMessage] = useState<string | null>(null);
+
+  const [sessionToDelete, setSessionToDelete] = useState<IChatSession | null>(null);
+  const [isDeletingSession, setIsDeletingSession] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -332,6 +336,45 @@ export default function TutorPage() {
     }
   };
 
+  const deleteChatSession = async (sessionID: string) => {
+    const response = await fetch(`${API_BASE}/chat/sessions/${sessionID}`, {
+      method: "DELETE"
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      const deletedID: string = data.sessionId;
+      setSessions((prev) => prev ? prev.filter((session) => session.id !== deletedID) : []);
+
+      if (sessionId === deletedID) {
+        setSessionId(null);
+        setMessages([]);
+      }
+    } else {
+      console.error("Error: Failed to delete chat session!", data);
+      throw new Error(data.detail ?? "Failed to delete chat session!");
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!sessionToDelete)
+      return;
+
+    setIsDeletingSession(true);
+    
+    try {
+      await deleteChatSession(sessionToDelete.id);
+      showStatus({text: "Chat session was deleted successfully!", type: "success"});
+    } catch (err) {
+      showStatus({text: "Something went wrong. Please try again!", type: "error"});
+      console.error(`Chat session deletion failed for ${sessionToDelete.title}`, err);
+    } finally {
+      setSessionToDelete(null);
+      setIsDeletingSession(false);
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col gap-6">
       <PageHeader
@@ -393,17 +436,34 @@ export default function TutorPage() {
             )}
 
             {sessions.map((session) => (
-              <button
+              <div
                 key={session.id}
-                onClick={() => loadSession(session)}
-                className={`truncate rounded-lg px-3 py-2 text-left text-xs transition ${
+                className={`group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition ${
                   session.id === sessionId && !isCreatingSession
                     ? "bg-white/10 text-zinc-100"
                     : "text-neutral-400 hover:bg-white/5 hover:text-neutral-200"
                 }`}
               >
-                {session.title || "Untitled chat"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => loadSession(session)}
+                  className="flex-1 truncate px-1 py-0.5 text-left"
+                >
+                  {session.title || "Untitled chat"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSessionToDelete(session);
+                  }}
+                  aria-label="Delete chat"
+                  className="flex shrink-0 items-center justify-center rounded-md p-1 text-neutral-300 opacity-0 transition-colors hover:bg-red-400/10 hover:text-red-300 group-hover:opacity-100 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-neutral-300"
+                >
+                  <Trash2Icon className="size-3.5" />
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -513,6 +573,19 @@ export default function TutorPage() {
           )}
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {sessionToDelete && (
+          <DeleteItemModal
+            title={sessionToDelete.title}
+            text={"This action cannot be undone. All messages in this conversation will be permanently deleted!"}
+            item={"chat"}
+            onCancel={() => setSessionToDelete(null)}
+            onConfirm={handleConfirmDelete}
+            isDeleting={isDeletingSession}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

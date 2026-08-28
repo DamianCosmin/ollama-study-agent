@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
 import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon } from "lucide-react";
 
-import LibraryCardModal from "../components/LibraryCardModal.tsx";
+import DeleteItemModal from "./DeleteItemModal.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
 import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
 
@@ -115,8 +115,10 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
           createPortal(
             <AnimatePresence>
               {isModalOpen && (
-                <LibraryCardModal
+                <DeleteItemModal
                   title={card.title}
+                  text={"This action cannot be undone. All flashcards and decks related to this document will be permanently deleted!"}
+                  item={"document"}
                   onCancel={() => setIsModalOpen(false)}
                   onConfirm={handleConfirmDelete}
                   isDeleting={isDeleting}

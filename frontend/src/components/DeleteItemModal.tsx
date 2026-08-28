@@ -2,20 +2,23 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trash2Icon } from "lucide-react";
 
-interface DeleteConfirmModalProps {
+interface DeleteItemModalProps {
   title: string;
+  text: string;
+  item: string;
   onCancel: () => void;
   onConfirm: () => void;
   isDeleting: boolean;
 }
 
-export default function DeleteConfirmModal({ title, onCancel, onConfirm, isDeleting }: DeleteConfirmModalProps) {
+export default function DeleteItemModal({title, text, item, onCancel, onConfirm, isDeleting}: DeleteItemModalProps) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
+      if (e.key === "Escape")
+        onCancel();
     };
     window.addEventListener("keydown", handleKeyDown);
 
@@ -43,7 +46,7 @@ export default function DeleteConfirmModal({ title, onCancel, onConfirm, isDelet
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="delete-confirm-title"
-        className="relative flex w-full max-w-sm flex-col gap-4 overflow-hidden rounded-xl bg-white/5 p-6 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]"
+        className="relative flex w-full max-w-md flex-col gap-4 overflow-hidden rounded-xl bg-white/5 p-6 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]"
       >
         <div className="pointer-events-none absolute -top-10 right-0 size-32 rounded-full bg-red-400/5 blur-[20px]" />
 
@@ -53,11 +56,11 @@ export default function DeleteConfirmModal({ title, onCancel, onConfirm, isDelet
 
         <div className="flex flex-col gap-1.5">
           <h2 id="delete-confirm-title" className="text-lg font-semibold leading-6 text-zinc-200">
-            {`Delete "${title}"?`}
+            {`Delete ${item} "${title}"?`}
           </h2>
 
           <p className="text-sm leading-5 text-neutral-300">
-            This action cannot be undone. All flashcards and decks related to this document will be permanently deleted!
+            {text}
           </p>
         </div>
 
