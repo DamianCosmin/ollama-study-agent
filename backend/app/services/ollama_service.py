@@ -12,7 +12,7 @@ DIFFICULTY_INSTRUCTIONS = {
     "hard": "Ask questions that require synthesizing multiple ideas or reasoning about implications, not just recall.",
 }
 
-def categorize_document(extracted_text: str):
+async def categorize_document(extracted_text: str):
     sample_text = extracted_text[:2500]
 
     prompt = textwrap.dedent(f"""
@@ -28,18 +28,13 @@ def categorize_document(extracted_text: str):
     """).strip()
 
     try:
-        response = ollama.chat(
+        response = await ollama_async_client.generate(
             model=OLLAMA_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+            prompt=prompt,
             options={"temperature": 0}
         )
 
-        category = response["message"]["content"].strip().lower()
+        category = response["response"].strip().lower()
     except Exception as e:
         print(f"Categorization failed: {e}")
         return "general"

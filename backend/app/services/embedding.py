@@ -1,12 +1,11 @@
-import ollama
 from app.services.ollama_service import ollama_async_client
 
 EMBEDDING_MODEL = 'nomic-embed-text'
 
-def create_embeddings(chunk_records: list[dict]) -> list[dict]:
+async def create_embeddings(chunk_records: list[dict]) -> list[dict]:
     texts = [record["text"] for record in chunk_records]
 
-    response = ollama.embed(model=EMBEDDING_MODEL, input=texts)
+    response = await ollama_async_client.embed(model=EMBEDDING_MODEL, input=texts)
     embeddings = response["embeddings"]
 
     if len(embeddings) != len(chunk_records):

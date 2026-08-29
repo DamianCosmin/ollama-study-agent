@@ -11,20 +11,20 @@ from app.services.chunking import chunk_text, add_chunks_metadata
 from app.services.embedding import create_embeddings
 from app.services.chromadb_storage import save_chunks
 
-def process_pipeline(document_id: str, file_type: str, file_path: str):
+async def process_pipeline(document_id: str, file_type: str, file_path: str):
     # 1: Text extraction & categorization
-    extracted_text, nr_pages = extract_text(file_type, file_path)
-    category = categorize_document(extracted_text)
+    extracted_text, nr_pages = await asyncio.to_thread(extract_text, file_type, file_path)
+    category = await categorize_document(extracted_text)
 
     # 2: Chunking
-    chunks = chunk_text(extracted_text)
-    chunk_records = add_chunks_metadata(document_id, chunks)
+    chunks = await asyncio.to_thread(chunk_text, extracted_text)
+    chunk_records = await asyncio.to_thread(add_chunks_metadata, document_id, chunks)
 
     # 3: Embeddings
-    embedded_chunks = create_embeddings(chunk_records)
+    embedded_chunks = await create_embeddings(chunk_records)
 
     # 4: ChromaDB store
-    save_chunks(embedded_chunks)
+    await asyncio.to_thread(save_chunks, embedded_chunks)
 
     return nr_pages, category
 
@@ -38,10 +38,7 @@ async def vectorize_document(document_id: uuid.UUID, file_path: str):
         file_type = document.file_type
 
     try:
-        # Runs document processing in a background thread to avoid blocking the main event loop
-        nr_pages, category = await asyncio.to_thread(
-            process_pipeline, str(document_id), file_type, file_path
-        )
+        nr_pages, category = await process_pipeline(str(document_id), file_type, file_path)
     
         final_status = "success"
         final_nr_pages = nr_pages
