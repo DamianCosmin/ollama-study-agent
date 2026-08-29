@@ -250,8 +250,10 @@ export default function FlashcardsSessionPage() {
 
   if (isLoading) {
     return (
-      <div className={`flex min-h-screen w-full items-center justify-center ${SESSION_GRADIENT} px-4`}>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
+      <div className={`relative flex min-h-screen w-full items-center justify-center overflow-hidden ${SESSION_GRADIENT} px-4`}>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 size-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-500/10 blur-[120px]" />
+
+        <div className="relative flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
           <Loader2Icon className="size-8 animate-spin text-emerald-400/80" />
           <span className="text-xl font-semibold text-zinc-300">Loading...</span>
         </div>
@@ -261,8 +263,10 @@ export default function FlashcardsSessionPage() {
 
   if (loadError || !deck) {
     return (
-      <div className={`flex min-h-screen w-full items-center justify-center ${SESSION_GRADIENT} px-4`}>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
+      <div className={`relative flex min-h-screen w-full items-center justify-center overflow-hidden ${SESSION_GRADIENT} px-4`}>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 size-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-500/10 blur-[120px]" />
+
+        <div className="relative flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
           <AlertCircleIcon className="size-8 text-red-400/80" />
           <span className="text-xl font-semibold text-zinc-300">Could not load this deck!</span>
         </div>
@@ -272,8 +276,10 @@ export default function FlashcardsSessionPage() {
 
   if (!currentCard) {
     return (
-      <div className={`flex min-h-screen w-full items-center justify-center ${SESSION_GRADIENT} px-4`}>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
+      <div className={`relative flex min-h-screen w-full items-center justify-center overflow-hidden ${SESSION_GRADIENT} px-4`}>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 size-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-500/10 blur-[120px]" />
+
+        <div className="relative flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/5 px-8 py-8 shadow-xl outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px] sm:px-12">
           <LayersIcon className="size-8 text-cyan-400/80" />
           <span className="text-xl font-semibold text-zinc-300">No cards to display!</span>
         </div>

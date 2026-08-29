@@ -34,4 +34,4 @@ export const DECK_STATUS_STYLES: Record<string, {background: string, modalBackgr
 export const FAILED_DECK_TAG_STYLE: string = "text-zinc-300 bg-zinc-300/10 outline-zinc-300/20";
 export const FAILED_DECK_ICON_STYLE: string = "text-zinc-400";
 
-export const SESSION_GRADIENT: string = "bg-gradient-to-br from-cyan-900/40 to-emerald-900/20";
+export const SESSION_GRADIENT: string = "bg-gradient-to-br from-cyan-800/30 to-emerald-600/15";
