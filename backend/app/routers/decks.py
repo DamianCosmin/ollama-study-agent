@@ -95,7 +95,7 @@ async def run_deck_generation(deck_info: CreateDeckRequest, deck_id: uuid.UUID, 
         generated_cards = await generate_flashcards(selected_chunks, deck_info.difficulty)
 
         # Deduplicate cards and keep the desired amount only
-        deduped_cards = await deduplicate_cards(generated_cards)
+        deduped_cards = await deduplicate_cards(generated_cards, 0.8)
 
         final_cards = deduped_cards[:deck_info.cardCount]
 

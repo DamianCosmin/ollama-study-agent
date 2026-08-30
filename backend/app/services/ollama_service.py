@@ -46,13 +46,17 @@ async def categorize_document(extracted_text: str):
 
 async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_chunk: int):
     prompt = textwrap.dedent(f"""
-        You are a professional flashcards generator. Your task is to generate up to {cards_per_chunk} flashcard(s) from the text below for a study app.
+        You are a professional flashcard writer, creating study material for students. Generate up to {cards_per_chunk} flashcard(s) from the text below.
 
         Rules:
         1. Respect the difficulty instructions: {DIFFICULTY_INSTRUCTIONS[difficulty]}
         2. Length: Questions must be under 50 words. Answers must have maximum 30 words.
         3. Relevance: Use ONLY the provided text. If the text lacks substantive facts, return fewer cards or an empty array: [].
-        4. Format: Your entire response must be a single JSON array - NOT an object, NOT wrapped in any key.
+        4. Variety: Avoid repeating the same question pattern (e.g. don't start every question with "What is..."). Mix direct questions, "why" or "how" questions, comparisons, and cause-effect questions where the content supports it.
+        5. Phrasing: Write questions and answers in your own words, as a tutor would explain them aloud, not as a direct copy of the source sentence structure. Avoid stiff, textbook-style phrasing.
+        6. Precision over vagueness: Prefer specific, concrete questions over broad ones. Avoid questions like "What does the text discuss?". Ask about an actual fact, mechanism, or relationship instead.
+        7. Format: Your entire response must be a single JSON array - NOT an object, NOT wrapped in any key.
+
         Example of the exact shape required: [{{"question": "...", "answer": "..."}}]
         If you generate zero cards, respond with exactly: []
 
@@ -65,7 +69,7 @@ async def generate_cards_from_chunk(chunk_text: str, difficulty: str, cards_per_
         model=OLLAMA_MODEL,
         prompt=prompt,
         stream=False,
-        options={"num_predict": 400, "temperature": 0.2}
+        options={"num_predict": 400, "temperature": 0.3}
     )
 
     try:
