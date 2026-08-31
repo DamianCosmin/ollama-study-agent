@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { SearchIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react";
+import { SearchIcon, PlusIcon, SlidersHorizontalIcon, LayersIcon, SearchXIcon } from "lucide-react";
 
 import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer from "../components/RecentAnswer.tsx";
@@ -17,8 +17,13 @@ export default function FlashcardsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "due">("all");
   const [dailyTarget, setDailyTarget] = useState<IDailyTarget | null>(null);
+  const [searchInput, setSearchInput] = useState("");
 
   const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
+  const searchedDecks: IDeckCard[] = visibleDecks
+    ? visibleDecks.filter((deck) => deck.title.toLowerCase().includes(searchInput.toLowerCase().trim()))
+    : [];
+
   const targetPercent = dailyTarget && dailyTarget.target > 0
     ? Math.min(100, Math.round((dailyTarget?.answered / dailyTarget?.target) * 100))
     : 0;
@@ -219,7 +224,13 @@ export default function FlashcardsPage() {
               <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 size-4 -translate-y-1/2 text-zinc-300" strokeWidth={2.5} />
               <input
                 type="search"
-                placeholder="Search documents..."
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
+                placeholder="Search decks..."
                 className="w-full rounded-xl bg-white/5 py-3 pl-12 pr-4 text-sm text-zinc-200 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[6px] placeholder:text-neutral-300/50 focus:outline-cyan-400/50 [color-scheme:dark]"
               />
             </div>
@@ -285,15 +296,43 @@ export default function FlashcardsPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {visibleDecks.map((deck) => (
-              <DeckCard 
-                key={deck.id}
-                deck={deck}
-                onStart={handleStartSession}
-                onRename={handleTitleRename}
-                onDelete={handleDeckDelete}
-              />
-            ))}
+            {decks && decks.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white/5 px-6 py-16 text-center outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
+                <span className="flex size-14 items-center justify-center rounded-full bg-cyan-400/10 outline outline-1 outline-offset-[-1px] outline-cyan-400/20">
+                  <LayersIcon className="size-6 text-cyan-400/80" />
+                </span>
+
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-lg font-semibold text-zinc-200">No decks yet</h2>
+                  <p className="max-w-sm text-sm text-neutral-400">
+                    You haven't generated any flashcards. Select an uploaded document to create your first deck.
+                  </p>
+                </div>
+              </div>
+            ) : searchedDecks && searchedDecks.length > 0 ? (
+              searchedDecks.map((deck) => (
+                <DeckCard 
+                  key={deck.id}
+                  deck={deck}
+                  onStart={handleStartSession}
+                  onRename={handleTitleRename}
+                  onDelete={handleDeckDelete}
+                />
+              ))
+            ) : (
+              <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white/5 px-6 py-16 text-center outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
+                <span className="flex size-14 items-center justify-center rounded-full bg-cyan-400/10 outline outline-1 outline-offset-[-1px] outline-cyan-400/20">
+                  <SearchXIcon className="size-6 text-cyan-400/80" />
+                </span>
+
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-lg font-semibold text-zinc-200">No decks found</h2>
+                  <p className="max-w-sm text-sm text-neutral-400">
+                    Nothing matches your search or filters. Try a different keyword or clear your filters to see all your decks.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

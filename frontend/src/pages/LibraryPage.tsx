@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { SearchIcon, SlidersHorizontalIcon } from "lucide-react";
+import { SearchIcon, SlidersHorizontalIcon, SearchXIcon, FileXIcon } from "lucide-react";
 import LibraryCard from "../components/LibraryCard.tsx";
 import UploadButton from "../components/UploadButton.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
@@ -8,9 +8,14 @@ import { API_BASE, WS_BASE, ILibraryCard } from "../utils/types.ts";
 import { convertToILibraryCard } from "../utils/functions.ts";
 
 export default function LibraryPage() {
-  const [documents, setDocuments] = useState<ILibraryCard[] | null>([]);
+  const [documents, setDocuments] = useState<ILibraryCard[]>([]);
+  const [searchInput, setSearchInput] = useState("");
   const socketRef = useRef<WebSocket | null>(null);
   const { showStatus } = useStatus();
+
+  const searchedDocuments: ILibraryCard[] = documents
+    ? documents.filter((doc) => doc.title.toLowerCase().includes(searchInput.toLowerCase().trim()))
+    : [];
 
   const fetchDocuments = async () => {
     try {
@@ -103,6 +108,12 @@ export default function LibraryPage() {
               <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 size-4 -translate-y-1/2 text-zinc-300" strokeWidth={2.5} />
               <input
                 type="search"
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.currentTarget.blur();
+                  }
+                }}
                 placeholder="Search documents..."
                 className="w-full rounded-xl bg-white/5 py-3 pl-12 pr-4 text-sm text-zinc-200 outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[6px] placeholder:text-neutral-300/50 focus:outline-cyan-400/50 [color-scheme:dark]"
               />
@@ -126,13 +137,41 @@ export default function LibraryPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {documents && documents.map((doc) => (
-          <LibraryCard 
-            key={doc.id}
-            card={doc}
-            onDeleteCard={handleDelete}
-          />
-        ))}
+        {documents && documents.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white/5 px-6 py-16 text-center outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
+            <span className="flex size-14 items-center justify-center rounded-full bg-cyan-400/10 outline outline-1 outline-offset-[-1px] outline-cyan-400/20">
+              <FileXIcon className="size-6 text-cyan-400/80" />
+            </span>
+
+            <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-semibold text-zinc-200">No documents yet</h2>
+              <p className="max-w-sm text-sm text-neutral-400">
+                You haven't uploaded any materials. Upload your first document to get started.
+              </p>
+            </div>
+          </div>
+        ) : searchedDocuments && searchedDocuments.length > 0 ? (
+          searchedDocuments.map((doc) => (
+            <LibraryCard 
+              key={doc.id}
+              card={doc}
+              onDeleteCard={handleDelete}
+            />
+          ))
+        ) : (
+          <div className="col-span-full flex flex-col items-center justify-center gap-3 rounded-xl bg-white/5 px-6 py-16 text-center outline outline-1 outline-offset-[-1px] outline-white/10 backdrop-blur-[10px]">
+            <span className="flex size-14 items-center justify-center rounded-full bg-cyan-400/10 outline outline-1 outline-offset-[-1px] outline-cyan-400/20">
+              <SearchXIcon className="size-6 text-cyan-400/80" />
+            </span>
+
+            <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-semibold text-zinc-200">No documents found</h2>
+              <p className="max-w-sm text-sm text-neutral-400">
+                Nothing matches your search or filters. Try a different keyword or clear your filters to see all your documents.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
