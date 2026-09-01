@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchIcon, PlusIcon, SlidersHorizontalIcon, LayersIcon, SearchXIcon } from "lucide-react";
 
@@ -6,10 +6,12 @@ import { PageHeader } from "../components/PageHeader.tsx";
 import RecentAnswer from "../components/RecentAnswer.tsx";
 import DeckCard from "../components/DeckCard.tsx";
 import CreateDeckModal from "../components/CreateDeckModal.tsx";
+import FilterModal from "../components/FilterModal.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
 import { useUpdateAccessDate } from "../hooks/useUpdateAccessDate.ts";
-import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard, IDailyTarget } from "../utils/types.ts";
+import { API_BASE, WS_BASE, IRecentAnswer, IDeckCard, IDailyTarget, FilterValues } from "../utils/types.ts";
 import { convertToIDeckCard, convertToIRecentAnswer } from "../utils/functions.ts";
+import { DECK_FILTER_SECTIONS } from "../utils/filters.ts";
 
 export default function FlashcardsPage() {
   const [decks, setDecks] = useState<IDeckCard[]>([]);
@@ -18,11 +20,51 @@ export default function FlashcardsPage() {
   const [filter, setFilter] = useState<"all" | "due">("all");
   const [dailyTarget, setDailyTarget] = useState<IDailyTarget | null>(null);
   const [searchInput, setSearchInput] = useState("");
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterValues>({});
 
-  const visibleDecks: IDeckCard[] = filter === "due" ? decks.filter((d) => d.lastUnanswered <= d.nrCards) : decks;
-  const searchedDecks: IDeckCard[] = visibleDecks
-    ? visibleDecks.filter((deck) => deck.title.toLowerCase().includes(searchInput.toLowerCase().trim()))
-    : [];
+  const filteredDecks: IDeckCard[] = useMemo(() => {
+    let result = [...decks];
+
+    if (filter === "due") {
+      result = result.filter((deck) => deck.lastUnanswered <= deck.nrCards);
+    }
+
+    const difficultyFilters: string[] | undefined = (activeFilters.difficulty as string[] | undefined) ?? [];
+    if (difficultyFilters.length > 0) {
+      result = result.filter((deck) => difficultyFilters.includes(deck.difficulty));
+    }
+
+    const categoryFilters: string[] | undefined = (activeFilters.category as string[] | undefined) ?? [];
+    if (categoryFilters.length > 0) {
+      result = result.filter((deck) => categoryFilters.includes(deck.category));
+    }
+
+    const trimmedSearch: string = searchInput.toLowerCase().trim();
+    if (trimmedSearch) {
+      result = result.filter((deck) => deck.title.toLowerCase().includes(trimmedSearch));
+    }
+
+    const sortValue: string | undefined = activeFilters.sort as string | undefined;
+    if (sortValue === "recent") {
+      result = result.sort((deckA, deckB) => deckB.lastAccessed.getTime() - deckA.lastAccessed.getTime());
+    } else if (sortValue === "due-least") {
+      result = result.sort((deckA, deckB) => {
+        const dueA: number = deckA.nrCards - deckA.lastUnanswered + 1;
+        const dueB: number = deckB.nrCards - deckB.lastUnanswered + 1;
+
+        if (dueA === dueB) {
+          return deckB.lastAccessed.getTime() - deckA.lastAccessed.getTime();
+        } else {
+          return dueA - dueB;
+        }
+      });
+    } else if (sortValue === "title-az") {
+      result = result.sort((deckA, deckB) => deckA.title.localeCompare(deckB.title));
+    }
+
+    return result;
+  }, [decks, filter, activeFilters, searchInput]);
 
   const targetPercent = dailyTarget && dailyTarget.target > 0
     ? Math.min(100, Math.round((dailyTarget?.answered / dailyTarget?.target) * 100))
@@ -237,7 +279,8 @@ export default function FlashcardsPage() {
 
             <button
               type="button"
-              className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10"
+              onClick={() => setIsFilterModalOpen(true)}
+              className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 transition-colors hover:bg-white/10 hover:text-cyan-300 hover:outline-cyan-300/30"
               aria-label="Filter documents"
             >
               <SlidersHorizontalIcon className="size-4" />
@@ -257,6 +300,15 @@ export default function FlashcardsPage() {
               isOpen={isCreateModalOpen}
               onClose={() => setIsCreateModalOpen(false)}
               onSubmit={handleSubmit}
+            />
+
+            <FilterModal
+              isOpen={isFilterModalOpen}
+              title={"Filter Decks"}
+              sections={DECK_FILTER_SECTIONS}
+              initialValues={activeFilters}
+              onClose={() => setIsFilterModalOpen(false)}
+              onApply={setActiveFilters}
             />
           </>
         }
@@ -309,8 +361,8 @@ export default function FlashcardsPage() {
                   </p>
                 </div>
               </div>
-            ) : searchedDecks && searchedDecks.length > 0 ? (
-              searchedDecks.map((deck) => (
+            ) : filteredDecks && filteredDecks.length > 0 ? (
+              filteredDecks.map((deck) => (
                 <DeckCard 
                   key={deck.id}
                   deck={deck}

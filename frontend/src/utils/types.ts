@@ -1,3 +1,5 @@
+import { type LucideIcon } from "lucide-react";
+
 // API
 export const API_BASE = "http://localhost:8000/api";
 export const WS_BASE = "ws://localhost:8000/ws";
@@ -98,3 +100,19 @@ export interface IChatSession {
   createdAt: Date;
   title: string;
 }
+
+// Filters
+export interface IFilterOption {
+  value: string;
+  label: string;
+  icon?: LucideIcon;
+}
+
+export interface IFilterSection {
+  id: string;
+  title: string;
+  type: "multi" | "single";
+  options: IFilterOption[];
+}
+
+export type FilterValues = Record<string, string[] | string | null>;
