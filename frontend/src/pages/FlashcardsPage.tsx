@@ -24,7 +24,7 @@ export default function FlashcardsPage() {
   const [activeFilters, setActiveFilters] = useState<FilterValues>({});
 
   const filteredDecks: IDeckCard[] = useMemo(() => {
-    let result = [...decks];
+    let result: IDeckCard[] = [...decks];
 
     if (filter === "due") {
       result = result.filter((deck) => deck.lastUnanswered <= deck.nrCards);

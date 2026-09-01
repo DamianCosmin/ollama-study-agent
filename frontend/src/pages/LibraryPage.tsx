@@ -1,21 +1,54 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { SearchIcon, SlidersHorizontalIcon, SearchXIcon, FileXIcon } from "lucide-react";
+
 import LibraryCard from "../components/LibraryCard.tsx";
 import UploadButton from "../components/UploadButton.tsx";
+import FilterModal from "../components/FilterModal.tsx";
 import { PageHeader } from "../components/PageHeader.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
-import { API_BASE, WS_BASE, ILibraryCard } from "../utils/types.ts";
+import { API_BASE, WS_BASE, ILibraryCard, FilterValues } from "../utils/types.ts";
 import { convertToILibraryCard } from "../utils/functions.ts";
+import { DOCUMENTS_FILTER_SECTIONS } from "../utils/filters.ts";
 
 export default function LibraryPage() {
   const [documents, setDocuments] = useState<ILibraryCard[]>([]);
   const [searchInput, setSearchInput] = useState("");
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterValues>({});
+
   const socketRef = useRef<WebSocket | null>(null);
   const { showStatus } = useStatus();
 
-  const searchedDocuments: ILibraryCard[] = documents
-    ? documents.filter((doc) => doc.title.toLowerCase().includes(searchInput.toLowerCase().trim()))
-    : [];
+  const filteredDocuments: ILibraryCard[] = useMemo(() => {
+    let result: ILibraryCard[] = [...documents];
+
+    const categoryFilters: string[] | undefined = (activeFilters.category as string[] | undefined) ?? [];
+    if (categoryFilters.length > 0) {
+      result = result.filter((doc) => categoryFilters.includes(doc.category));
+    }
+
+    const trimmedSearch: string = searchInput.toLowerCase().trim();
+    if (trimmedSearch) {
+      result = result.filter((doc) => doc.title.toLowerCase().includes(trimmedSearch));
+    }
+
+    const sortValue: string | undefined = activeFilters.sort as string | undefined;
+    if (sortValue === "recent") {
+      result = result.sort((docA, docB) => docB.uploadDate.getTime() - docA.uploadDate.getTime());
+    } else if (sortValue === "pages-least") {
+      result = result.sort((docA, docB) => {
+        if (docA.nrPages === docB.nrPages) {
+          return docA.uploadDate.getTime() - docB.uploadDate.getTime();
+        } else {
+          return docA.nrPages - docB.nrPages;
+        }
+      });
+    } else if (sortValue === "title-az") {
+      result = result.sort((docA, docB) => docA.title.localeCompare(docB.title));
+    }
+
+    return result;
+  }, [documents, activeFilters, searchInput]);
 
   const fetchDocuments = async () => {
     try {
@@ -122,7 +155,8 @@ export default function LibraryPage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10"
+                onClick={() => setIsFilterModalOpen(true)}
+                className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/5 text-neutral-300 outline outline-1 outline-offset-[-1px] outline-white/10 transition-colors hover:bg-white/10 hover:text-cyan-300 hover:outline-cyan-300/30"
                 aria-label="Filter documents"
               >
                 <SlidersHorizontalIcon className="size-4" />
@@ -132,6 +166,15 @@ export default function LibraryPage() {
                 onUpload={handleUpload} 
               />
             </div>
+
+            <FilterModal
+              isOpen={isFilterModalOpen}
+              title={"Filter Documents"}
+              sections={DOCUMENTS_FILTER_SECTIONS}
+              initialValues={activeFilters}
+              onClose={() => setIsFilterModalOpen(false)}
+              onApply={setActiveFilters}
+            />
           </>
         }
       />
@@ -150,8 +193,8 @@ export default function LibraryPage() {
               </p>
             </div>
           </div>
-        ) : searchedDocuments && searchedDocuments.length > 0 ? (
-          searchedDocuments.map((doc) => (
+        ) : filteredDocuments && filteredDocuments.length > 0 ? (
+          filteredDocuments.map((doc) => (
             <LibraryCard 
               key={doc.id}
               card={doc}
