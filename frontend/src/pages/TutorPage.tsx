@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { BotIcon, MenuIcon, XIcon, MessageSquarePlusIcon, Trash2Icon } from "lucide-react";
 
@@ -580,18 +581,23 @@ export default function TutorPage() {
         </div>
       </motion.div>
 
-      <AnimatePresence>
-        {sessionToDelete && (
-          <DeleteItemModal
-            title={sessionToDelete.title}
-            text={"This action cannot be undone. All messages in this conversation will be permanently deleted!"}
-            item={"chat"}
-            onCancel={() => setSessionToDelete(null)}
-            onConfirm={handleConfirmDelete}
-            isDeleting={isDeletingSession}
-          />
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" && 
+        createPortal(
+          <AnimatePresence>
+            {sessionToDelete && (
+              <DeleteItemModal
+                title={sessionToDelete.title}
+                text={"This action cannot be undone. All messages in this conversation will be permanently deleted!"}
+                item={"chat"}
+                onCancel={() => setSessionToDelete(null)}
+                onConfirm={handleConfirmDelete}
+                isDeleting={isDeletingSession}
+              />
+            )}
+          </AnimatePresence>,
+          document.body
+        )
+      }     
     </div>
   );
 }
