@@ -6,6 +6,7 @@ import FlashcardsPage from "./pages/FlashcardsPage.tsx";
 import FlashcardsSessionPage from "./pages/FlashcardsSessionPage.tsx";
 import TutorPage from "./pages/TutorPage.tsx";
 import SettingsPage from "./pages/SettingsPage.tsx";
+import ErrorPage from "./pages/ErrorPage.tsx";
 import { StatusProvider } from "./context/StatusContext.tsx";
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         </Route>
 
         <Route path="/flashcards/session" element={<FlashcardsSessionPage />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </StatusProvider>
   );
