@@ -6,6 +6,7 @@ import { FileTextIcon, FileWarningIcon, Trash2Icon, LayersIcon, type LucideIcon 
 import DeleteItemModal from "./DeleteItemModal.tsx";
 import { useStatus } from "../context/StatusContext.tsx";
 import { ILibraryCard, LibraryCardTag } from "../utils/types.ts";
+import { CATEGORIES } from "../utils/subjects.ts";
 
 const statusAttributes: Record<string, {tag: LibraryCardTag, icon: string; ring: string; dot: string}> = {
   success: {
@@ -51,6 +52,7 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
   const Icon: LucideIcon = card.status === "error" ? FileWarningIcon : FileTextIcon;
   const styles: {tag: LibraryCardTag, icon: string; ring: string; dot: string} = statusAttributes[card.status] ?? statusAttributes.error;
   const Tag: LibraryCardTag = styles.tag;
+  const cardCategory: string = CATEGORIES[card.category].name ?? CATEGORIES["general"].name;
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
@@ -85,8 +87,10 @@ export default function LibraryCard({ card, onDeleteCard }: LibraryCardProps) {
         </div>
 
         <div className="flex flex-col gap-1 pb-6">
-          <h3 className="text-base font-semibold leading-6 text-zinc-200">{card.title}</h3>
-          <p className="text-sm leading-5 text-neutral-300">{formatDate(card.uploadDate)}</p>
+          <h3 className="text-lg font-semibold leading-6 text-zinc-100">{card.title}</h3>
+          <p className="text-sm leading-5 text-neutral-300">
+            {cardCategory} <span className="mx-0.5">•</span> {formatDate(card.uploadDate)}
+          </p>
         </div>
 
         <div className="flex items-center justify-between border-t border-white/5 pt-4">
