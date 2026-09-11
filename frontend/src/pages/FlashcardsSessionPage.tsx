@@ -152,6 +152,16 @@ export default function FlashcardsSessionPage() {
     navigate("/flashcards");
   }, [deckId, updateAccessDate, navigate]);
 
+  const shuffleFlashcards = (cards: IFlashcard[]): IFlashcard[] => {
+    const shuffled = [...cards];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+  };
+
   // Keyboard shortcuts: Space / Enter to flip, 1-4 for feedback, Arrows to navigate in review mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -215,7 +225,7 @@ export default function FlashcardsSessionPage() {
           return;
 
         const deck: IDeckCard = convertToIDeckCard(deckData.deck);
-        const flashcards: IFlashcard[] = cardsData.flashcards;
+        let flashcards: IFlashcard[] = cardsData.flashcards;
 
         // Client-side UX guards against fake review / study mode from URL
         if (mode === "review" && deck.lastUnanswered <= deck.nrCards) {
@@ -226,6 +236,22 @@ export default function FlashcardsSessionPage() {
         if (mode === "study" && deck.lastUnanswered > deck.nrCards) {
           navigate(`/flashcards/session?deckId=${deckId}&mode=review`, {replace: true});
           return;
+        }
+
+        if (mode === "review") {
+          const storageKey: string = `review_session_${deck.id}`;
+          const savedOrder: string | null = sessionStorage.getItem(storageKey);
+
+          if (savedOrder) {
+            const flashcardIds: string[] = JSON.parse(savedOrder);
+            flashcards = [...flashcards].sort((flashcardA, flashcardB) =>
+              flashcardIds.indexOf(flashcardA.id) - flashcardIds.indexOf(flashcardB.id)
+            );
+          } else {
+            flashcards = shuffleFlashcards(flashcards);
+            const orderIds: string[] = flashcards.map(flashcard => flashcard.id);
+            sessionStorage.setItem(storageKey, JSON.stringify(orderIds));
+          }
         }
 
         setDeck(deck);

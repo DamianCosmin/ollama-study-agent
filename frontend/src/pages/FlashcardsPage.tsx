@@ -118,8 +118,14 @@ export default function FlashcardsPage() {
     const mode: string = deck.lastUnanswered <= deck.nrCards ? "study" : "review";
     const success: boolean = await updateAccessDate(deck.id);
 
-    if (success)
+    if (success) {
+      if (mode === "review") {
+        const storageKey: string = `review_session_${deck.id}`;
+        sessionStorage.removeItem(storageKey);
+      }
+
       navigate(`/flashcards/session?deckId=${deck.id}&mode=${mode}`);
+    }
   }
 
   const handleTitleRename = async (deckId: string, newTitle: string) => {
