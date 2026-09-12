@@ -168,7 +168,7 @@ export default function TutorPage() {
   }
 
   const fillSuggestion = (label: string) => {
-    setValue(label);
+    setValue(`${label}: `);
     const el = textareaRef.current;
 
     if (el) {
@@ -540,7 +540,7 @@ export default function TutorPage() {
             <>
               {/* Active conversation view */}
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 sm:px-8">
-                <div className="mx-auto flex max-w-2xl flex-col gap-4">
+                <div className="mx-auto flex max-w-2xl flex-col gap-6">
                   {messages.map((message) => (
                     <ChatBubble key={message.id} message={message} />
                   ))}
