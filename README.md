@@ -43,6 +43,14 @@ The application follows a consistent **dark, glass-like visual theme** with cyan
 
 A visual gallery showcasing the interface and core features is currently in preparation and will be added to this section soon.
 
+## 🏗️ System Design & Architecture
+
+The development of this project began with a comprehensive System Design document, which served as the foundational blueprint for the application. All subsequent development strictly followed the rules and requirements outlined within it. Every API endpoint, data entity, and database table was built adhering to these initial guidelines. 
+
+Inside the document, you will also find a detailed Excalidraw diagram that visually maps out the complete system architecture.
+
+[View the System Design Document (PDF)](system-design.pdf)
+
 ## ⚙️ Tech Stack
 
 **Frontend**  
