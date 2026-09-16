@@ -41,7 +41,13 @@ The application follows a consistent **dark, glass-like visual theme** with cyan
 
 ## 🖼️ Gallery
 
-A visual gallery showcasing the interface and core features is currently in preparation and will be added to this section soon.
+![Dashboard Page](assets/images/dashboard.png)
+![Library Page](assets/images/library.png)
+![Flashcards Page](assets/images/flashcards.png)
+![AI Tutor Page](assets/images/ai_tutor.png)
+![Session Page - Card Front](assets/images/session1.png)
+![Session Page - Card Back](assets/images/session2.png)
+![Settings Page](assets/images/settings.png)
 
 ## 🏗️ System Design & Architecture
 
@@ -49,7 +55,7 @@ The development of this project began with a comprehensive System Design documen
 
 Inside the document, you will also find a detailed Excalidraw diagram that visually maps out the complete system architecture.
 
-[View the System Design Document (PDF)](system-design.pdf)
+[View the System Design Document (PDF)](assets/system-design.pdf)
 
 ## ⚙️ Tech Stack
 
